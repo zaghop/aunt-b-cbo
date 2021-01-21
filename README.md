@@ -1,18 +1,25 @@
-# Salesforce DX Project: Next Steps
+# Aunt Bertha Referral Manager
 
-Now that you’ve created a Salesforce DX project, what’s next? Here are some documentation resources to get you started.
+## Introduction
 
-## How Do You Plan to Deploy Your Changes?
+This managed package, developed for the Salesforce platform, will allow the CBO non-profit to import, view, edit, and create referrals directly from their Salesforce instance. 
 
-Do you want to deploy a set of changes, or create a self-contained application? Choose a [development model](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
+## Code Samples
 
-## Configure Your Salesforce DX Project
+import { LightningElement, api } from 'lwc';
 
-The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
+export default class AuntBerthaReferralManager extends LightningElement {
+    @api showSettings;
 
-## Read All About It
+    openSettings = () => {
+        this.showSettings = true;
+    }
 
-- [Salesforce Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
-- [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro.htm)
-- [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm)
+    closeSettings = () => {
+        this.showSettings = false;
+    }
+}
+
+## Installation
+
+An installation URL will be supplied to the Salesforce administrator. The installation will be orchestrated via the standard Salesforce package installation UI.
