@@ -1,0 +1,111 @@
+<template>
+    <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small"
+        aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <button class="slds-button slds-button_icon slds-modal__close" title="Close">
+                    <lightning-icon icon-name="utility:close" alternative-text="Close Modal" title="Close"
+                        style="color:#FFF" onclick={closeSettings}></lightning-icon>
+                </button>
+                <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Configuration</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-2">
+                        <div if:true={stepCreds}>
+                            <div class="slds-p-bottom_medium">
+                                <div class="slds-text-heading_medium">Login to Aunt Bertha</div>
+                                <div class="slds-text-body_regular">Use your organizations credentials to connect and
+                                    receive referrals from Aunt Bertha.</div>
+                            </div>
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label" for="form-element-01">Username</label>
+                                <div class="slds-form-element__control">
+                                    <input type="text" id="form-element-01" placeholder="you@email.com"
+                                        class="slds-input" />
+                                </div>
+                            </div>
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label" for="form-element-01">Password</label>
+                                <div class="slds-form-element__control">
+                                    <input type="text" id="form-element-02" placeholder="****************"
+                                        class="slds-input" />
+                                </div>
+                            </div>
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label" for="form-element-01">API Key</label>
+                                <div class="slds-form-element__control">
+                                    <input type="text" id="form-element-03"
+                                        placeholder="a98s8d7a9sd98a89sddlkas9hk0h09lfmbn96d5" class="slds-input" />
+                                </div>
+                            </div>
+                            <div class="slds-p-top_medium">
+                                <button class="slds-button slds-button_brand">Save Credentials</button>
+                            </div>
+                        </div>
+                        <!-- IMPORT PANE START -->
+                        <div if:true={stepImport}>
+                            <div class="slds-p-bottom_medium">
+                                <div class="slds-text-heading_medium">Historical Import</div>
+                                <div class="slds-text-body_regular">Set the options below for how your referrals will be
+                                    imported into your system.</div>
+                            </div>
+                            <div>
+                            </div>
+                            <lightning-checkbox-group options={importOptions} value={importValue}
+                                onchange={handleImportChange}></lightning-checkbox-group>
+                            <!-- p>Selected Values are: {selectedImportValues}</p -->
+                            <div class="slds-p-top_medium">
+                                <button class="slds-button slds-button_brand">Save Options</button>
+                            </div>
+                        </div>
+                        <!-- IMPORT PANE END -->
+                        <!-- OPTIONS PANE START -->
+                        <div if:true={stepOptions}>
+                            <div class="slds-p-bottom_medium">
+                                <div class="slds-text-heading_medium">Application Options</div>
+                                <div class="slds-text-body_regular">Finalize your application options by completing the
+                                    options below.</div>
+                            </div>
+                            <div class="slds-p-bottom_medium">
+                                <lightning-combobox name="interval" label="How often should we check for status updates?" value={intervalValue}
+                                    placeholder="Select Updatee Interval" options={intervalOptions} onchange={handleIntervalChange}>
+                                </lightning-combobox>
+                            </div>
+                            <lightning-checkbox-group options={optionOptions} value={optionsValue}
+                                onchange={handleOptionsChange}></lightning-checkbox-group>
+                            <!-- p>Selected Values are: {selectedOptionsValues}</p -->
+                            <div class="slds-p-top_medium">
+                                <button class="slds-button slds-button_brand">Save Settings</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-align_absolute-center">
+                        <img src={abLogo} style="height:75px" />
+                    </div>
+                </div>
+            </div>
+            <footer class="slds-modal__footer">
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-3 slds-grow-none">
+                        <button class="slds-button slds-button_brand slds-float_left" onclick={back} if:true={showBack}>Back</button>
+                    </div>
+                    <div class="slds-col slds-size_1-of-3">
+                        <lightning-progress-indicator current-step={selectedStep} type="base" variant="base">
+                            <lightning-progress-step label="Verify Credentials" value="creds"
+                                onclick={selectSettingsStep}></lightning-progress-step>
+                            <lightning-progress-step label="Historical Import" value="import"
+                                onclick={selectSettingsStep}></lightning-progress-step>
+                            <lightning-progress-step label="Options" value="options" onclick={selectSettingsStep}>
+                            </lightning-progress-step>
+                        </lightning-progress-indicator>
+                    </div>
+                    <div class="slds-col slds-size_1-of-3 slds-grow-none" >
+                        <button class="slds-button slds-button_neutral slds-float_right" onclick={next} if:true={showNext}>Next</button>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>
