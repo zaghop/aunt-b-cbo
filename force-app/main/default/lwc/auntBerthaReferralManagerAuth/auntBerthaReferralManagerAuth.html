@@ -43,14 +43,40 @@
                                 <button class="slds-button slds-button_brand">Save Credentials</button>
                             </div>
                         </div>
+                        <!-- OPTIONS PANE START -->
+                        <div if:true={stepOptions}>
+                            <div class="slds-p-bottom_medium">
+                                <div class="slds-text-heading_medium">Application Options</div>
+                                <div class="slds-text-body_regular">Finalize your application options by completing the
+                                    options below.</div>
+                            </div>
+                            <div class="slds-p-bottom_medium">
+                                <lightning-combobox name="interval"
+                                    label="How often should we check for status updates?" value={intervalValue}
+                                    placeholder="Select Updatee Interval" options={intervalOptions}
+                                    onchange={handleIntervalChange}>
+                                </lightning-combobox>
+                            </div>
+                            <lightning-checkbox-group options={optionOptions} value={optionsValue}
+                                onchange={handleOptionsChange}></lightning-checkbox-group>
+                            <!-- p>Selected Values are: {selectedOptionsValues}</p -->
+                            <div class="slds-p-top_medium">
+                                <button class="slds-button slds-button_brand">Save Settings</button>
+                            </div>
+                        </div>
                         <!-- IMPORT PANE START -->
                         <div if:true={stepImport}>
                             <div class="slds-p-bottom_medium">
-                                <div class="slds-text-heading_medium">Historical Import</div>
+                                <div class="slds-text-heading_medium">Configuration Options</div>
                                 <div class="slds-text-body_regular">Set the options below for how your referrals will be
                                     imported into your system.</div>
                             </div>
-                            <div>
+                            <div class="slds-p-bottom_medium">
+                                <lightning-combobox name="interval"
+                                    label="How often should we check for status updates?" value={intervalValue}
+                                    placeholder="Select Updatee Interval" options={intervalOptions}
+                                    onchange={handleIntervalChange}>
+                                </lightning-combobox>
                             </div>
                             <lightning-checkbox-group options={importOptions} value={importValue}
                                 onchange={handleImportChange}></lightning-checkbox-group>
@@ -60,23 +86,24 @@
                             </div>
                         </div>
                         <!-- IMPORT PANE END -->
-                        <!-- OPTIONS PANE START -->
-                        <div if:true={stepOptions}>
-                            <div class="slds-p-bottom_medium">
-                                <div class="slds-text-heading_medium">Application Options</div>
-                                <div class="slds-text-body_regular">Finalize your application options by completing the
-                                    options below.</div>
+                        <div if:true={stepProgress}>
+                            <div if:false={showConfirm}>
+                                <div class="slds-p-bottom_medium">
+                                    <div class="slds-text-heading_medium">Historical Import</div>
+                                    <div class="slds-text-body_regular">Begin your import and view import progress and history here.</div>
+                                </div>
+                                <div>
+                                    <button class="slds-button slds-button_brand" onclick={toggleImportConfirm}>Start Import</button>
+                                </div>
                             </div>
-                            <div class="slds-p-bottom_medium">
-                                <lightning-combobox name="interval" label="How often should we check for status updates?" value={intervalValue}
-                                    placeholder="Select Updatee Interval" options={intervalOptions} onchange={handleIntervalChange}>
-                                </lightning-combobox>
-                            </div>
-                            <lightning-checkbox-group options={optionOptions} value={optionsValue}
-                                onchange={handleOptionsChange}></lightning-checkbox-group>
-                            <!-- p>Selected Values are: {selectedOptionsValues}</p -->
-                            <div class="slds-p-top_medium">
-                                <button class="slds-button slds-button_brand">Save Settings</button>
+                            <div if:true={showConfirm}>
+                                <div class="slds-p-bottom_medium">
+                                    <div class="slds-text-heading_medium">Start Import?</div>
+                                    <div class="slds-text-body_regular">Click the button below to confirm the historical import. <strong>This process can not be stopped once started.</strong></div>
+                                </div>
+                                <div>
+                                    <button class="slds-button slds-button_neutral" onclick={toggleImportConfirm}>Cancel Import</button><button class="slds-button slds-button_brand" onclick={startImport}>Start Import</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -88,7 +115,8 @@
             <footer class="slds-modal__footer">
                 <div class="slds-grid slds-wrap">
                     <div class="slds-col slds-size_1-of-3 slds-grow-none">
-                        <button class="slds-button slds-button_brand slds-float_left" onclick={back} if:true={showBack}>Back</button>
+                        <button class="slds-button slds-button_brand slds-float_left" onclick={back}
+                            if:true={showBack}>Back</button>
                     </div>
                     <div class="slds-col slds-size_1-of-3">
                         <lightning-progress-indicator current-step={selectedStep} type="base" variant="base">
@@ -96,12 +124,14 @@
                                 onclick={selectSettingsStep}></lightning-progress-step>
                             <lightning-progress-step label="Historical Import" value="import"
                                 onclick={selectSettingsStep}></lightning-progress-step>
-                            <lightning-progress-step label="Options" value="options" onclick={selectSettingsStep}>
+                            <lightning-progress-step label="Import Progress" value="progress"
+                                onclick={selectSettingsStep}>
                             </lightning-progress-step>
                         </lightning-progress-indicator>
                     </div>
-                    <div class="slds-col slds-size_1-of-3 slds-grow-none" >
-                        <button class="slds-button slds-button_neutral slds-float_right" onclick={next} if:true={showNext}>Next</button>
+                    <div class="slds-col slds-size_1-of-3 slds-grow-none">
+                        <button class="slds-button slds-button_neutral slds-float_right" onclick={next}
+                            if:true={showNext}>Next</button>
                     </div>
                 </div>
             </footer>

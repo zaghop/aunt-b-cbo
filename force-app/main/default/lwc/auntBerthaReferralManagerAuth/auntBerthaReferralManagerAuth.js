@@ -35,6 +35,12 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         return false;
     }
 
+    get stepProgress(){
+        if(this.selectedStep == 'progress')
+            return true;
+        return false;
+    }
+
     selectSettingsStep = (event) => {
         this.selectedStep = event.target.value;
     }
@@ -47,7 +53,7 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
     }
     
     get showNext(){
-        if(this.selectedStep == 'options')
+        if(this.selectedStep == 'progress')
             return false;
         return true;
     }
@@ -55,36 +61,23 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
     next = () => {
         if(this.selectedStep == 'creds'){
             this.selectedStep = 'import';
-        }else if(this.selectedStep == 'import') this.selectedStep = 'options';
+        }else if(this.selectedStep == 'import'){
+            this.selectedStep = 'progress';
+        }
     }
     
     back = () => {
-        if(this.selectedStep == 'options'){
+        if(this.selectedStep == 'progress'){
             this.selectedStep = 'import';
-        } else if(this.selectedStep == 'import') this.selectedStep = 'creds';
+        }else if(this.selectedStep == 'import'){
+            this.selectedStep = 'creds';
+        }
     }
 
     //OPTIONS PANE
-    optionsValue = [];
-
-    get optionOptions() {
-        return [
-            { label: 'Allow manual input', value: 'allow_manual' },
-            { label: 'Refresh referral statuses on app load', value: 'refresh_load' }
-        ];
-    }
-
-    get selectedOptionsValues() {
-        return this.optionsValue.join(',');
-    }
-
-    handleOptionsChange(e) {
-        this.optionsValue = e.detail.value;
-    }
-
     intervalValue = '1';
 
-    get intervalOptions() {
+    get intervalOptions(){
         return [
             { label: 'Once a day', value: '1' },
             { label: 'Twice a day', value: '2' },
@@ -99,16 +92,35 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
 
     //IMPORT PANE
     importValue = [];
+    confirmImport = false;
 
     get importOptions() {
         return [
-            { label: 'Retrieve all referrals on install', value: 'allow_manual' },
             { label: 'Retrieve closed referrals', value: 'import_closed' }
         ];
     }
 
     get selectedImportValues() {
         return this.importValue.join(',');
+    }
+
+    get showConfirm() {
+        if(this.confirmImport)
+            return true;
+        return false;
+    }
+
+    startImport(e) {
+        console.log('start');
+    }
+
+    toggleImportConfirm(e) {
+        console.log('toggle');
+        if(this.confirmImport){
+            this.confirmImport = false;
+        }else{
+            this.confirmImport = true;
+        }
     }
 
     handleImportChange(e) {
