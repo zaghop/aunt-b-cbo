@@ -22,49 +22,47 @@
                                 <label class="slds-form-element__label" for="form-element-01">Username</label>
                                 <div class="slds-form-element__control">
                                     <input type="text" id="form-element-01" placeholder="you@email.com"
-                                        class="slds-input" />
+                                        class="slds-input" onchange={handleInputChange} data-name="username" /> 
                                 </div>
                             </div>
                             <div class="slds-form-element">
                                 <label class="slds-form-element__label" for="form-element-01">Password</label>
                                 <div class="slds-form-element__control">
                                     <input type="text" id="form-element-02" placeholder="****************"
-                                        class="slds-input" />
+                                        class="slds-input" onchange={handleInputChange} data-name="password"/>
                                 </div>
                             </div>
                             <div class="slds-form-element">
                                 <label class="slds-form-element__label" for="form-element-01">API Key</label>
                                 <div class="slds-form-element__control">
                                     <input type="text" id="form-element-03"
-                                        placeholder="a98s8d7a9sd98a89sddlkas9hk0h09lfmbn96d5" class="slds-input" />
+                                        placeholder="a98s8d7a9sd98a89sddlkas9hk0h09lfmbn96d5" class="slds-input" 
+                                        onchange={handleInputChange} data-name="api_key"/>
                                 </div>
                             </div>
                             <div class="slds-p-top_medium">
-                                <button class="slds-button slds-button_brand">Save Credentials</button>
+                                <button class="slds-button slds-button_brand" onclick={startSaveCreds}>Save Credentials</button>
                             </div>
                         </div>
-                        <!-- OPTIONS PANE START -->
+                        <!-- OPTIONS PANE START
                         <div if:true={stepOptions}>
                             <div class="slds-p-bottom_medium">
                                 <div class="slds-text-heading_medium">Application Options</div>
-                                <div class="slds-text-body_regular">Finalize your application options by completing the
+                                <div class="slds-text-body_regular">Finalize your application by completing the
                                     options below.</div>
                             </div>
                             <div class="slds-p-bottom_medium">
                                 <lightning-combobox name="interval"
                                     label="How often should we check for status updates?" value={intervalValue}
-                                    placeholder="Select Updatee Interval" options={intervalOptions}
-                                    onchange={handleIntervalChange}>
+                                    placeholder="Select Update Interval" options={intervalOptions} onchange={handleInputChange} data-name="interval">
                                 </lightning-combobox>
                             </div>
-                            <lightning-checkbox-group options={optionOptions} value={optionsValue}
-                                onchange={handleOptionsChange}></lightning-checkbox-group>
-                            <!-- p>Selected Values are: {selectedOptionsValues}</p -->
+                            <lightning-input type="checkbox" label="Import Closed Referrals" name="getClosedRefs" onchange={handleInputChange} data-name="get_closed"></lightning-input>
                             <div class="slds-p-top_medium">
-                                <button class="slds-button slds-button_brand">Save Settings</button>
+                                <button class="slds-button slds-button_brand" onclick={saveOptions}>Save Settings</button>
                             </div>
                         </div>
-                        <!-- IMPORT PANE START -->
+                        <IMPORT PANE START -->
                         <div if:true={stepImport}>
                             <div class="slds-p-bottom_medium">
                                 <div class="slds-text-heading_medium">Configuration Options</div>
@@ -78,8 +76,7 @@
                                     onchange={handleIntervalChange}>
                                 </lightning-combobox>
                             </div>
-                            <lightning-checkbox-group options={importOptions} value={importValue}
-                                onchange={handleImportChange}></lightning-checkbox-group>
+                            <lightning-input type="checkbox" label="Import Closed Referrals" name="getClosedRefs" onchange={handleInputChange} data-name="get_closed"></lightning-input>
                             <!-- p>Selected Values are: {selectedImportValues}</p -->
                             <div class="slds-p-top_medium">
                                 <button class="slds-button slds-button_brand">Save Options</button>

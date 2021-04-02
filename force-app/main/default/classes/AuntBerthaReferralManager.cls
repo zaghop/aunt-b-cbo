@@ -40,7 +40,9 @@ public with sharing class AuntBerthaReferralManager {
         }
 
         @AuraEnabled
-        public static Map<String, String> saveSettings(Map<String,String> settings){
+        public static Map<String, String> saveCreds(Map<String,String> settings){
+
+            system.debug('SAVE CREDS');
 
             Map<String, ab_ref_mgr__c> customSettings = ab_ref_mgr__c.getall();
 

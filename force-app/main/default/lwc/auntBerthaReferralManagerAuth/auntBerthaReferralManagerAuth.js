@@ -1,7 +1,10 @@
 import { LightningElement, track, wire, api } from 'lwc';
 import AB_LOGO from '@salesforce/resourceUrl/AuntBerthaLogo';
+import saveCreds from "@salesforce/apex/AuntBerthaReferralManager.saveCreds";
+import getSettings from "@salesforce/apex/AuntBerthaReferralManager.getSettings";
 
 export default class AuntBerthaReferralManagerAuth extends LightningElement {
+    settings = {};
     @api selectedStep;
 
     abLogo = AB_LOGO;
@@ -86,10 +89,6 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         ];
     }
 
-    handleIntervalChange(event) {
-        this.intervalValue = event.detail.value;
-    }
-
     //IMPORT PANE
     importValue = [];
     confirmImport = false;
@@ -126,4 +125,44 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
     handleImportChange(e) {
         this.importValue = e.detail.value;
     }
+
+    //USER INTERACTION
+    handleInputChange = (event) => {
+        console.log('input');
+        let currentSetting = event.target.dataset.name;
+        if(currentSetting == 'get_closed'){
+            this.settings[currentSetting] = event.target.checked;
+        }else{
+            this.settings[currentSetting] = event.target.value;
+        }
+        console.log(this.settings);
+    }
+
+    handleIntervalChange(event) {
+        console.log('intervalsssss');
+        this.settings['interval'] = event.detail.value;
+        console.log(this.settings);
+    }
+
+    //APEX CALLS
+    startSaveCreds = (event) => {
+        console.log('save creds');
+        const creds = {
+            'username': this.settings.username,
+            'password': this.settings.password,
+            'api_key': this.settings.api_key
+        };
+        saveCreds({
+            settings: creds
+          })
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    saveOptions = (event) => {
+        console.log('save options');
+    }
+    
+
 }
