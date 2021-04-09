@@ -12,11 +12,11 @@ public with sharing class ReferralController
         ];
     }
 
-    @AuraEnabled	//(cacheable=true)
+    @AuraEnabled
     public static Referral__c getSingleReferral(Id rId) {
  
         System.debug('from main record: rId [' + rId + ']');
-		//Id recId = 'a023g00000Bb8m8AAB';
+
         return [
             SELECT Id, Name, Sender_Username__c, Receiver_First_Name__c, Receiver_Last_Name__c, Receiver_Email__c,
             		Receiver_Phone_Number__c, Status__c, Comment__c, Contact_Preferences__c
