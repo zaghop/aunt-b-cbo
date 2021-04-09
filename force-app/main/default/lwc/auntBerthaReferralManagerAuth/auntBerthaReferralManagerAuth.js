@@ -2,6 +2,7 @@ import { LightningElement, track, wire, api } from 'lwc';
 import AB_LOGO from '@salesforce/resourceUrl/AuntBerthaLogo';
 import saveCreds from "@salesforce/apex/AuntBerthaReferralManager.saveCreds";
 import getSettings from "@salesforce/apex/AuntBerthaReferralManager.getSettings";
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class AuntBerthaReferralManagerAuth extends LightningElement {
     settings = {};
@@ -15,7 +16,7 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
       }
 
       closeSettings = () => {
-          console.log('close settts');
+        console.log('close settts');
         this.dispatchEvent(new CustomEvent('closesettings'));
     }
 
@@ -156,12 +157,24 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
             settings: creds
           })
             .then(result => {
-                console.log(result);
+                console.log('saved',result);
+                const evt = new ShowToastEvent({
+                    title: 'Credentials Saved',
+                    message: 'Your Aunt Bertha credentials have been confirmed and saved',
+                    variant: 'success',
+                });
+                this.dispatchEvent(evt);
             });
     }
 
     saveOptions = (event) => {
         console.log('save options');
+        const evt = new ShowToastEvent({
+            title: 'Options Saved',
+            message: 'Your Aunt Bertha import options have been saved',
+            variant: 'success',
+        });
+        this.dispatchEvent(evt);
     }
     
 
