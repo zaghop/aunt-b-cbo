@@ -1,0 +1,88 @@
+<template>
+    <lightning-card title="Edit Record" icon-name="custom:custom96">
+        <template if:true={referral}>
+            <div class="slds-var-m-around_medium slds-var-m-bottom_xx-large">
+                <div class="slds-grid">
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-form-element_readonly">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Referrer Name</label>
+                                <div class="slds-form-element__static">
+                                    {referral.Name}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element_readonly">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Sender Username</label>
+                                <div class="slds-form-element__static">
+                                    {referral.Sender_Username__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element_readonly">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Status</label>
+                                <div class="slds-form-element__static">
+                                    {referral.Status__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element_readonly">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Comment</label>
+                                <div class="slds-form-element__static">
+                                    {referral.Comment__c}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-form-element_readonly">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Receiver Email</label>
+                                <div class="slds-form-element__static">
+                                    {referral.Receiver_Email__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element_readonly">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Receiver First Name</label>
+                                <div class="slds-form-element__static">
+                                    {referral.Receiver_First_Name__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element_readonly">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Receiver Last Name</label>
+                                <div class="slds-form-element__static">
+                                    {referral.Receiver_Last_Name__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element_readonly">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Receiver Phone Number</label>
+                                <div class="slds-form-element__static">
+                                    {referral.Receiver_Phone_Number__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element_readonly">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label">Contact Preferences</label>
+                                <div class="slds-form-element__static">
+                                    {referral.Contact_Preferences__c}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </lightning-card>
+</template>

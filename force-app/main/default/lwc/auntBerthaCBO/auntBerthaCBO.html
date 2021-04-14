@@ -1,7 +1,7 @@
 <template>
     <template if:true={showSpinner}>
-		<lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
-	</template>
+        <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
+    </template>
     <lightning-card>
         <div class="slds-card__body slds-card__body_inner">
             <lightning-button-group>
@@ -28,17 +28,39 @@
                         </button>
                         <h2 id="modal-heading-02" class="slds-modal__title slds-hyphenate">Create New Referral</h2>
                     </header>
-                        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2" style="text-align: left;">
-                            <lightning-record-form object-api-name="Referral__c"
-                                fields={fields}
-                                columns="2"
-                                onsubmit={handleCreateNewReferral}>
-                            </lightning-record-form>
-                        </div>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2"
+                        style="text-align: left;">
+                        <lightning-record-edit-form record-id={recordId} object-api-name="Referral__c"
+                            field-names={fields} onsuccess={handleCreateReferralSuccess}>
+
+                            <div class="slds-grid">
+                                <div class="slds-col slds-size_1-of-2">
+                                    <lightning-input-field field-name="Program__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Status__c" value="not yet helped"></lightning-input-field>
+                                    <lightning-input-field field-name="Contact_Preferences__c"></lightning-input-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2">
+                                    <lightning-input-field field-name="Receiver_First_Name__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Receiver_Last_Name__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Receiver_Email__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Receiver_Phone_Number__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Comment__c"></lightning-input-field>
+                                </div>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning-button class="slds-m-top_small" label="Cancel" onclick={closeNewModal}></lightning-button>
+                                <lightning-button class="slds-m-top_small" type="submit" label="Save" variant="brand"></lightning-button>
+                            </div>
+                        </lightning-record-edit-form>
+                        <!-- lightning-record-form object-api-name="Referral__c" fields={fields} columns="2"
+                            onsuccess={handleCreateReferralSuccess}>
+                        </lightning-record-form>
+                    </div>
                     <footer class="slds-modal__footer">
                         <button class="slds-button slds-button_neutral" onclick={closeNewModal}>Cancel</button>
-                        <!--<button class="slds-button slds-button_brand" onclick={confirmSubmission}>Send to Epic</button>-->
-                    </footer>
+                        <<button class="slds-button slds-button_brand" onclick={confirmSubmission}>Send to Epic</button>>
+                    </footer-->
+                    </div>
                 </div>
             </section>
             <div class="slds-backdrop slds-backdrop_open"></div>
@@ -53,22 +75,36 @@
                         </button>
                         <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Referral Record</h2>
                     </header>
-                        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1" style="text-align: left;">
-                            <!--<lightning-record-form object-api-name="Referral__c"
-                                fields={fields}
-                                onsuccess={handleSuccess}>
-                            </lightning-record-form>-->
-                            <lightning-record-form record-id={recordId}
-                                object-api-name="Referral__c"
-                                fields={fields}
-                                columns="2"
-                                onsubmit={handleSubmit}>
-                            </lightning-record-form>
-                        </div>
-                    <footer class="slds-modal__footer">
-                        <button class="slds-button slds-button_neutral" onclick={closeRecordModal}>Cancel</button>
-                        <!--<button class="slds-button slds-button_brand" onclick={confirmSubmission}>Send to Epic</button>-->
-                    </footer>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1"
+                        style="text-align: left;">
+                        <lightning-record-edit-form record-id={recordId} object-api-name="Referral__c"
+                            field-names={fields} onsuccess={handleEditReferralSuccess}>
+
+                            <div class="slds-grid">
+                                <div class="slds-col slds-size_1-of-2">
+                                    <lightning-output-field field-name="Name"></lightning-output-field>
+                                    <lightning-output-field field-name="Referral_ID__c"></lightning-output-field>
+                                    <lightning-output-field field-name="Program__c"></lightning-output-field>
+                                    <lightning-output-field field-name="Sender_Username__c"></lightning-output-field>
+                                    <lightning-input-field field-name="Status__c"></lightning-input-field>
+                                    <lightning-output-field field-name="Comment__c"></lightning-output-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2">
+                                    <lightning-output-field field-name="Needs_Follow_Up__c"></lightning-output-field>
+                                    <lightning-output-field field-name="Receiver_First_Name__c"></lightning-output-field>
+                                    <lightning-output-field field-name="Receiver_Last_Name__c"></lightning-output-field>
+                                    <lightning-output-field field-name="Receiver_Email__c"></lightning-output-field>
+                                    <lightning-output-field field-name="Receiver_Phone_Number__c"></lightning-output-field>
+                                    <lightning-output-field field-name="Contact_Preferences__c"></lightning-output-field>
+                                </div>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning-button class="slds-m-top_small" label="Cancel" onclick={closeRecordModal}></lightning-button>
+                                <lightning-button class="slds-m-top_small" type="submit" label="Save" variant="brand"></lightning-button>
+                            </div>
+                            
+                        </lightning-record-edit-form>
+                    </div>
                 </div>
             </section>
             <div class="slds-backdrop slds-backdrop_open"></div>
