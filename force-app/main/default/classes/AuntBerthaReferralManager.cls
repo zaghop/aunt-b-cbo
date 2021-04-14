@@ -76,6 +76,39 @@ public with sharing class AuntBerthaReferralManager {
             return config;  
         }
 
+        @AuraEnabled
+        public static Map<String, String> saveOptions(Map<String,String> settings){
+
+            system.debug('SAVE OPTIONS');
+
+            Map<String, ab_ref_mgr__c> customSettings = ab_ref_mgr__c.getall();
+
+            List<ab_ref_mgr__c> lstSettings = new List<ab_ref_mgr__c>();
+
+            if(customSettings.size() == 0 || Test.isRunningTest()){
+                lstSettings.add(new ab_ref_mgr__c (Name='get_closed'));
+                lstSettings.add(new ab_ref_mgr__c (Name='update_interval'));
+                insert lstSettings;
+                customSettings = ab_ref_mgr__c.getAll();
+            }
+
+            for (String name : settings.keySet()) {
+                String settingId = customSettings.get(name).Id;
+                String settingValue = settings.get(name);
+
+                update new ab_ref_mgr__c(
+                    Id = settingId,
+                    Value__c = settingValue
+                );
+            }
+
+            Map<String, String> config = new Map<String, String>();
+            Map<String, ab_ref_mgr__c> newSettings = ab_ref_mgr__c.getall();
+            config.put('get_closed', newSettings.get('get_closed').Value__c);
+            config.put('update_interval', newSettings.get('update_interval').Value__c);
+            return config;  
+        }
+
         @future (callout=true)
         public static void updateReferrals(){
             Map<String, String> config = new Map<String, String>();

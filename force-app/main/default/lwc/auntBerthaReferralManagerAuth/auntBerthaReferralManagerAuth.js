@@ -1,6 +1,7 @@
 import { LightningElement, track, wire, api } from 'lwc';
 import AB_LOGO from '@salesforce/resourceUrl/AuntBerthaLogo';
 import saveCreds from "@salesforce/apex/AuntBerthaReferralManager.saveCreds";
+import saveOptions from "@salesforce/apex/AuntBerthaReferralManager.saveOptions";
 import getSettings from "@salesforce/apex/AuntBerthaReferralManager.getSettings";
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
@@ -153,29 +154,71 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
             'password': this.settings.password,
             'api_key': this.settings.api_key
         };
-        saveCreds({
-            settings: creds
+        this.postData('https://api.auntberthaqa.com/v3/authenticate', creds )
+        .then(data => {
+            console.log('success',data); // JSON data parsed by `data.json()` call
+            if(data.success){
+                saveCreds({
+                    settings: creds
+                  })
+                    .then(result => {
+                        console.log('saved',result);
+                        const evt = new ShowToastEvent({
+                            title: 'Credentials Saved',
+                            message: 'Your Aunt Bertha credentials have been confirmed and saved',
+                            variant: 'success',
+                        });
+                        this.dispatchEvent(evt);
+                    });
+            }else{
+                console.log('error');
+                const evt = new ShowToastEvent({
+                    title: 'Credentials Failed',
+                    message: 'Your Aunt Bertha credentials are invalid',
+                    variant: 'error',
+                });
+                this.dispatchEvent(evt);
+            }
+        });
+
+        return;
+        
+        
+    }
+
+    saveOptions = (event) => {
+        console.log('save options', this.settings);
+        const options = { 'get_closed' : this.settings.get_closed,
+                           'update_interal': this.settings.interval}
+        
+        saveOptions({
+            options: options
           })
             .then(result => {
                 console.log('saved',result);
                 const evt = new ShowToastEvent({
-                    title: 'Credentials Saved',
-                    message: 'Your Aunt Bertha credentials have been confirmed and saved',
-                    variant: 'success',
+                    title: 'Options Saved',
+                    message: 'Your Aunt Bertha import options have been saved',
+                    variant: 'success'
                 });
                 this.dispatchEvent(evt);
             });
     }
 
-    saveOptions = (event) => {
-        console.log('save options');
-        const evt = new ShowToastEvent({
-            title: 'Options Saved',
-            message: 'Your Aunt Bertha import options have been saved',
-            variant: 'success',
+    postData = async (url = '', data = {}) => {
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: 'POST',
+            mode: 'cors', // no-cors, *cors, same-origin
+            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: JSON.stringify(data)
         });
-        this.dispatchEvent(evt);
+        return response.json();
     }
-    
 
 }
