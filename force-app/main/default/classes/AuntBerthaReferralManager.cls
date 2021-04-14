@@ -25,9 +25,8 @@ public with sharing class AuntBerthaReferralManager {
             config.put('endpoint', customSettings.get('endpoint').Value__c);
             config.put('username', customSettings.get('username').Value__c);
             config.put('password', customSettings.get('password').Value__c);
-            config.put('get_closed', customSettings.get('password').Value__c);
-            config.put('update_interval', customSettings.get('password').Value__c);
-
+            config.put('get_closed', customSettings.get('get_closed').Value__c);
+            config.put('update_interval', customSettings.get('update_interval').Value__c);
             Id id1 = UserInfo.getProfileId();
 
             List<Profile> profile = [Select Name from Profile where Id =: id1 LIMIT 1];

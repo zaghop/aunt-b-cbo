@@ -19,7 +19,12 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
     connectedCallback(){
         console.log('here');
         getSettings().then(result => {
+<<<<<<< HEAD
+            this.intervalValue = result.update_interval;
+            this.importClosed = result.get_closed;
+=======
             console.log('settings',result);
+>>>>>>> 0295d879c21146ba61aa9b4c2e13360c78fc3499
         });
     }
 

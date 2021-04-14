@@ -4,6 +4,7 @@ import REFERRALID_FIELD from '@salesforce/schema/Referral__c.Referral_ID__c';
 import STATUS_FIELD from '@salesforce/schema/Referral__c.Status__c';
 import FOLLOWUP_FIELD from '@salesforce/schema/Referral__c.Needs_Follow_Up__c';
 import PROGRAM_FIELD from '@salesforce/schema/Referral__c.Program__c';
+
 const actions = [
     { label: 'Show details', name: 'show_details' },
     { label: 'Delete', name: 'delete' },
@@ -32,6 +33,8 @@ export default class AuntBerthaCBO extends LightningElement {
     recordId = '';
     fields = [REFERRALID_FIELD, STATUS_FIELD, FOLLOWUP_FIELD, PROGRAM_FIELD];
 
+    @api showSettings;
+    
     connectedCallback() {
 		this.loadReferrals();
 	}
@@ -76,6 +79,14 @@ export default class AuntBerthaCBO extends LightningElement {
 
     closeRecordModal = () => {
         this.showRecordModal = false;
+    }
+
+    openSettings = () => {
+        this.showSettings = true;
+    }
+
+    closeSettings = () => {
+        this.showSettings = false;
     }
 
     handleCreateNewReferral = (event) => {
