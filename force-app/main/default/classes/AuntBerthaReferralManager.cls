@@ -98,6 +98,8 @@ public with sharing class AuntBerthaReferralManager {
                 String settingId = customSettings.get(name).Id;
                 String settingValue = settings.get(name);
 
+                system.debug(name+' SETTINGS '+settingValue);
+
                 update new ab_ref_mgr__c(
                     Id = settingId,
                     Value__c = settingValue
