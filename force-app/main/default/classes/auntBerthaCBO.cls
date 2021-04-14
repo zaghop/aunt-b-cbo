@@ -1,5 +1,4 @@
-public with sharing class auntBerthaCBO
-{
+public with sharing class auntBerthaCBO {
     public auntBerthaCBO() {
 
     }
@@ -9,7 +8,7 @@ public with sharing class auntBerthaCBO
         List<Referral__c> lR = [SELECT Id, Referral_ID__c, Program__c, Status__c, Name, Needs_Follow_Up__c FROM Referral__c];
         return lR;
     }
-
+    
     @AuraEnabled
     public static Referral__c getSingleReferral(Id rId) {
  

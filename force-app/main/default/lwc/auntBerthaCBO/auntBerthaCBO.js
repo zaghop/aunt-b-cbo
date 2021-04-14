@@ -35,6 +35,8 @@ export default class AuntBerthaCBO extends LightningElement {
     recordId = '';
     fields = [REFERRALID_FIELD, STATUS_FIELD, FOLLOWUP_FIELD, PROGRAM_FIELD];
 
+    @api showSettings;
+    
     connectedCallback() {
 		this.loadReferrals();
 	}
@@ -168,4 +170,20 @@ export default class AuntBerthaCBO extends LightningElement {
 
     }
 
+    openSettings = () => {
+        this.showSettings = true;
+    }
+
+    closeSettings = () => {
+        this.showSettings = false;
+    }
+
+    handleCreateNewReferral = (event) => {
+        console.log('Referral detail : ',event.detail.fields);
+        this.showNewModal = false;
+        console.log('2');
+        //this.loadReferrals();
+        //refreshApex(this.data);
+        console.log('3');
+    }
 }

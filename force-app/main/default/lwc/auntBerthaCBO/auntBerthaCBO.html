@@ -8,19 +8,22 @@
                 <lightning-button label="Refresh"></lightning-button>
                 <lightning-button label="New" onclick={openNewModal}></lightning-button>
             </lightning-button-group>
-            <lightning-datatable key-field="id" data={data} columns={columns} hide-checkbox-column="true"
+            <lightning-icon icon-name="utility:setup" alternative-text="Close Modal" title="Close"
+                        style="color:#FFF" onclick={openSettings}></lightning-icon>
+            <c-aunt-bertha-referral-manager-auth if:true={showSettings} onclosesettings={closeSettings}></c-aunt-bertha-referral-manager-auth>
+            <lightning-datatable
+                key-field="id"
+                data={data}
+                columns={columns}
                 onrowaction={handleRowAction}>
             </lightning-datatable>
         </div>
         <template if:true={showNewModal}>
-            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
-                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
                     <header class="slds-modal__header">
-                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
-                            title="Close" onclick={closeNewModal}>
-                            <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
-                                size="small"></lightning-icon>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeNewModal}>
+                            <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
                             <span class="slds-assistive-text">Close</span>
                         </button>
                         <h2 id="modal-heading-02" class="slds-modal__title slds-hyphenate">Create New Referral</h2>
@@ -63,14 +66,11 @@
             <div class="slds-backdrop slds-backdrop_open"></div>
         </template>
         <template if:true={showRecordModal}>
-            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
-                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
                     <header class="slds-modal__header">
-                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
-                            title="Close" onclick={closeRecordModal}>
-                            <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
-                                size="small"></lightning-icon>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeRecordModal}>
+                            <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
                             <span class="slds-assistive-text">Close</span>
                         </button>
                         <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Referral Record</h2>
