@@ -8,6 +8,9 @@
                 <lightning-button label="Refresh"></lightning-button>
                 <lightning-button label="New" onclick={openNewModal}></lightning-button>
             </lightning-button-group>
+            <lightning-icon icon-name="utility:setup" alternative-text="Close Modal" title="Close"
+                        style="color:#FFF" onclick={openSettings}></lightning-icon>
+            <c-aunt-bertha-referral-manager-auth if:true={showSettings} onclosesettings={closeSettings}></c-aunt-bertha-referral-manager-auth>
             <lightning-datatable
                 key-field="id"
                 data={data}
