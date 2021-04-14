@@ -16,7 +16,14 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         this.selectedStep = 'creds';
       }
 
-      closeSettings = () => {
+    connectedCallback(){
+        console.log('here');
+        getSettings().then(result => {
+            console.log('settings',result);
+        });
+    }
+
+    closeSettings = () => {
         console.log('close settts');
         this.dispatchEvent(new CustomEvent('closesettings'));
     }
@@ -189,10 +196,10 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
     saveOptions = (event) => {
         console.log('save options', this.settings);
         const options = { 'get_closed' : this.settings.get_closed,
-                           'update_interal': this.settings.interval}
+                           'update_interval': this.settings.interval}
         
         saveOptions({
-            options: options
+            settings: options
           })
             .then(result => {
                 console.log('saved',result);
@@ -202,6 +209,9 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
                     variant: 'success'
                 });
                 this.dispatchEvent(evt);
+            })
+            .catch(e => {
+                console.log('error saving', e);
             });
     }
 
