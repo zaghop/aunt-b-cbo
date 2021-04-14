@@ -27,19 +27,41 @@
                     </header>
                     <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2"
                         style="text-align: left;">
-                        <lightning-record-form object-api-name="Referral__c" fields={fields} columns="2"
-                            onsubmit={handleCreateNewReferral}>
+                        <lightning-record-edit-form record-id={recordId} object-api-name="Referral__c"
+                            field-names={fields} onsuccess={handleCreateReferralSuccess}>
+
+                            <div class="slds-grid">
+                                <div class="slds-col slds-size_1-of-2">
+                                    <lightning-input-field field-name="Program__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Status__c" value="not yet helped"></lightning-input-field>
+                                    <lightning-input-field field-name="Contact_Preferences__c"></lightning-input-field>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2">
+                                    <lightning-input-field field-name="Receiver_First_Name__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Receiver_Last_Name__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Receiver_Email__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Receiver_Phone_Number__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Comment__c"></lightning-input-field>
+                                </div>
+                            </div>
+                            <div class="slds-grid">
+                                <lightning-button class="slds-m-top_small" label="Cancel" onclick={closeNewModal}></lightning-button>
+                                <lightning-button class="slds-m-top_small" type="submit" label="Save" variant="brand"></lightning-button>
+                            </div>
+                        </lightning-record-edit-form>
+                        <!-- lightning-record-form object-api-name="Referral__c" fields={fields} columns="2"
+                            onsuccess={handleCreateReferralSuccess}>
                         </lightning-record-form>
                     </div>
                     <footer class="slds-modal__footer">
                         <button class="slds-button slds-button_neutral" onclick={closeNewModal}>Cancel</button>
-                        <!--<button class="slds-button slds-button_brand" onclick={confirmSubmission}>Send to Epic</button>-->
-                    </footer>
+                        <<button class="slds-button slds-button_brand" onclick={confirmSubmission}>Send to Epic</button>>
+                    </footer-->
+                    </div>
                 </div>
             </section>
             <div class="slds-backdrop slds-backdrop_open"></div>
         </template>
-        <!-- c-aunt-bertha-referral-manager-view-referral></c-aunt-bertha-referral-manager-view-referral -->
         <template if:true={showRecordModal}>
             <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
                 aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
@@ -76,9 +98,11 @@
                                     <lightning-output-field field-name="Contact_Preferences__c"></lightning-output-field>
                                 </div>
                             </div>
-                            <lightning-button class="slds-m-top_small" label="Cancel" onclick={closeRecordModal}></lightning-button>
-                            <lightning-button class="slds-m-top_small" type="submit" label="Save">
-                        </lightning-button>
+                            <div class="slds-grid">
+                                <lightning-button class="slds-m-top_small" label="Cancel" onclick={closeRecordModal}></lightning-button>
+                                <lightning-button class="slds-m-top_small" type="submit" label="Save" variant="brand"></lightning-button>
+                            </div>
+                            
                         </lightning-record-edit-form>
                     </div>
                 </div>

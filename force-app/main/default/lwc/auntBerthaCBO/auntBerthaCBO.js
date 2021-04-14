@@ -2,6 +2,7 @@ import { LightningElement , wire , track , api} from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 import getAllReferrals from '@salesforce/apex/auntBerthaCBO.getAllReferrals';
 import sendStatusToEndpoint from '@salesforce/apex/auntBerthaCBO.sendStatusToEndpoint';
+import processNewReferralRecord from '@salesforce/apex/auntBerthaCBO.processNewReferralRecord';
 import REFERRALID_FIELD from '@salesforce/schema/Referral__c.Referral_ID__c';
 import STATUS_FIELD from '@salesforce/schema/Referral__c.Status__c';
 import FOLLOWUP_FIELD from '@salesforce/schema/Referral__c.Needs_Follow_Up__c';
@@ -80,13 +81,51 @@ export default class AuntBerthaCBO extends LightningElement {
         this.showRecordModal = false;
     }
 
-    handleCreateNewReferral = (event) => {
-        console.log('Referral detail : ',JSON.stringify(event.detail.fields));
-        this.showNewModal = false;
-        console.log('2');
+    // after new record save is successful 
+    handleCreateReferralSuccess = (event) => {
+        console.log('1');
+
+        console.log('fields raw: ', event.detail.fields);
+
+        const fields = JSON.stringify(event.detail.fields);
+        console.log('fields json: ', fields);
+
+
+        // newly created Id
+        this.recordId = event.detail.id;
+        console.log(`new record id[${this.recordId}]`);
+
+        // all fields
+        //fields.Street = '32 Prince Street';
         //this.loadReferrals();
         //refreshApex(this.data);
-        console.log('3');
+        processNewReferralRecord({ recordId: this.recordId })
+            .then(result => {
+                /* close modal */
+                this.closeNewModal();
+                
+                /* refresh list */
+                //refreshApex(this);
+            })
+			.then(result => {
+                this.data = result;
+                const evt = new ShowToastEvent({
+                    title: "New record saved",
+                    message: "New record saved",
+                    variant: "success"
+                });
+                this.dispatchEvent(evt);
+            })
+			.catch(error => {
+                this.error = error;
+                const evt = new ShowToastEvent({
+                    title: "Error saving new record",
+                    message: this.error,
+                    variant: "error"
+                });
+                this.dispatchEvent(evt);
+            });
+
     }
 
     // after submit is successful 
