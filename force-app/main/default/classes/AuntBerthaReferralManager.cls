@@ -27,7 +27,6 @@ public with sharing class AuntBerthaReferralManager {
             config.put('password', customSettings.get('password').Value__c);
             config.put('get_closed', customSettings.get('get_closed').Value__c);
             config.put('update_interval', customSettings.get('update_interval').Value__c);
-
             Id id1 = UserInfo.getProfileId();
 
             List<Profile> profile = [Select Name from Profile where Id =: id1 LIMIT 1];
@@ -97,8 +96,6 @@ public with sharing class AuntBerthaReferralManager {
             for (String name : settings.keySet()) {
                 String settingId = customSettings.get(name).Id;
                 String settingValue = settings.get(name);
-
-                system.debug(name+' SETTINGS '+settingValue);
 
                 update new ab_ref_mgr__c(
                     Id = settingId,

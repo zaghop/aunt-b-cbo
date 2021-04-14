@@ -34,7 +34,7 @@ export default class AuntBerthaCBO extends LightningElement {
     fields = [REFERRALID_FIELD, STATUS_FIELD, FOLLOWUP_FIELD, PROGRAM_FIELD];
 
     @api showSettings;
-
+    
     connectedCallback() {
 		this.loadReferrals();
 	}
