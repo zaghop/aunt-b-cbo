@@ -25,7 +25,8 @@ public with sharing class AuntBerthaReferralManager {
             config.put('endpoint', customSettings.get('endpoint').Value__c);
             config.put('username', customSettings.get('username').Value__c);
             config.put('password', customSettings.get('password').Value__c);
-
+            config.put('get_closed', customSettings.get('get_closed').Value__c);
+            config.put('update_interval', customSettings.get('update_interval').Value__c);
             Id id1 = UserInfo.getProfileId();
 
             List<Profile> profile = [Select Name from Profile where Id =: id1 LIMIT 1];
@@ -79,9 +80,9 @@ public with sharing class AuntBerthaReferralManager {
         @AuraEnabled
         public static Map<String, String> saveOptions(Map<String,String> settings){
 
-            system.debug('SAVE OPTIONS');
-
             Map<String, ab_ref_mgr__c> customSettings = ab_ref_mgr__c.getall();
+
+            system.debug('CUSTOM SETTING'+customSettings);
 
             List<ab_ref_mgr__c> lstSettings = new List<ab_ref_mgr__c>();
 
@@ -106,7 +107,7 @@ public with sharing class AuntBerthaReferralManager {
             Map<String, ab_ref_mgr__c> newSettings = ab_ref_mgr__c.getall();
             config.put('get_closed', newSettings.get('get_closed').Value__c);
             config.put('update_interval', newSettings.get('update_interval').Value__c);
-            return config;  
+            return config;
         }
 
         @future (callout=true)
