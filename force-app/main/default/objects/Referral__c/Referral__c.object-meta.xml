@@ -155,12 +155,12 @@
     <externalSharingModel>Private</externalSharingModel>
     <label>Referral</label>
     <nameField>
-        <displayFormat>REF-{0000}</displayFormat>
         <label>Referral Name</label>
-        <type>AutoNumber</type>
+        <trackHistory>false</trackHistory>
+        <type>Text</type>
     </nameField>
     <pluralLabel>Referrals</pluralLabel>
-    <searchLayouts/>
+    <searchLayouts></searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>
 </CustomObject>

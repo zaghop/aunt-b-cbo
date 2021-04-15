@@ -3,9 +3,69 @@
     <fullName>Status__c</fullName>
     <externalId>false</externalId>
     <label>Status</label>
-    <length>50</length>
     <required>false</required>
+    <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
-    <type>Text</type>
-    <unique>false</unique>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>couldnt_get_help</fullName>
+                <default>false</default>
+                <label>couldn’t get help</label>
+            </value>
+            <value>
+                <fullName>got_help</fullName>
+                <default>false</default>
+                <label>got help</label>
+            </value>
+            <value>
+                <fullName>needs_action</fullName>
+                <default>false</default>
+                <label>needs action</label>
+            </value>
+            <value>
+                <fullName>no_longer_interested</fullName>
+                <default>false</default>
+                <label>no longer interested</label>
+            </value>
+            <value>
+                <fullName>not yet helped</fullName>
+                <default>false</default>
+                <label>not yet helped</label>
+            </value>
+            <value>
+                <fullName>referred elsewhere</fullName>
+                <default>false</default>
+                <label>referred elsewhere</label>
+            </value>
+            <value>
+                <fullName>unknown</fullName>
+                <default>false</default>
+                <label>unknown</label>
+            </value>
+            <value>
+                <fullName>couldn’t contact</fullName>
+                <default>false</default>
+                <label>couldn’t contact</label>
+            </value>
+            <value>
+                <fullName>not eligible</fullName>
+                <default>false</default>
+                <label>not eligible</label>
+            </value>
+            <value>
+                <fullName>eligible</fullName>
+                <default>false</default>
+                <label>eligible</label>
+            </value>
+            <value>
+                <fullName>no capacity</fullName>
+                <default>false</default>
+                <label>no capacity</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
 </CustomField>
