@@ -154,8 +154,9 @@ public with sharing class AuntBerthaReferralManager {
                 queryRefs('234234asdfasfasfasfasfasfasf', config);
             }
         }
-
+        
         public static void queryRefs(String token, Map<String, String> config){
+            /*
             String pastMonth = String.valueOf(date.today().addDays(-7).month());
             String pastDay = String.valueOf(date.today().addDays(-7).day());
             String pastYear = String.valueOf(date.today().addDays(-7).year());
@@ -375,5 +376,6 @@ public with sharing class AuntBerthaReferralManager {
             if(casesToUpdate.size() > 0){
                 update casesToUpdate;
             }
+            */
         }
 }
