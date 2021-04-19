@@ -26,14 +26,72 @@ public with sharing class auntBerthaCBO {
         System.debug('in sendStatusToEndpoint');
 
         System.debug('referralId [' + referralId + '] status [' + newStatus + ']');
+        String retStatus = 'failed';  // default assume failure
          
-        /*try {
+        try {
+            // getABEndpointAuthToken() calls AB REST API
+            // we get Map<Aunt Bertha main endpoint, authentication token>
+            Map<String, String> ABtoken = getABEndpointAuthToken();
+
+            // remove this code after callout is successful
+            //Map<String, String> ABtoken = new Map<String, String>();
+            //ABtoken.put('endpoint', 'https://api.auntberthaqa.com');
+            //ABtoken.put('token', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjczYzYyMjFjMDJhZjU2YjIzMzBhNTk5ODJhZDAzYzhmMmRmYjk4MWQifQ.eyJpc3MiOiJzZWFyY2hiZXJ0aGEtcWExQGFwcHNwb3QuZ3NlcnZpY2VhY2NvdW50LmNvbSIsInN1YiI6ImpvbmF0aGFuQHphZ2hvcC5jb20iLCJpYXQiOjE2MTg1ODk4NTEsImV4cCI6MTY1MDEyNTg1MSwiZW1haWwiOiJqb25hdGhhbkB6YWdob3AuY29tIiwiYXBpX2tleSI6IjdlNzg4MmUyMjNhZWJhYmUyOGU1NjllNDdkOWMxOWQwIn0.G5YupN-5YrfVEP52hUSaKuCCpEDSYdrWXNcpCHlIL85pJ1ga8fnwzG6xGBOmH3bxWADSlshdenkmrDrvUaljLTn46yQ6ErU46GDqDh1FRH5grvrgUGAQYVnpY_e1YeiQ4GWzpccf3o91p-PYFqspY5LNx-VoYpqO8dBo4aIFsaVq9H9QsOBcFyyiVzBk4dWKUlnkjLaPNQohAiPyf8_9jwzBzCmKOUodlF3Z4ybapueWYkP9X20optV14FBOqED_ya_inmJcpeoHY3ofr-0rEZQsK7gPpG2Pmx5T_0gXAttHs5uXpc4WSNHN_s41seoLHiPZEqrbm4AdQiPPmjGdpw'); 
+
+            if(ABtoken != null){
+                // send update to Aunt Bertha
+                String endpoint =  ABtoken.get('endpoint')+'/v3/referrals/'+referralId;
+                String responseJSN;
+    
+                HttpRequest req = new HttpRequest();
+                req.setMethod('PUT');
+                req.setHeader('Authorization', 'Bearer '+ABtoken.get('token'));
+                req.setHeader('Content-Type', 'application/json');
+                req.setTimeout(60000);
+                req.setEndpoint(endpoint);
+
+                Map<String, Object> obj = new Map<String, Object>();
+                obj.put('status', newStatus);
+                //obj.put('status', 'no longer interested');
+                String jsonBody = JSON.Serialize(obj);
+    
+                req.setBody(jsonBody);
+    
+                System.debug('preparing for referral status update call. jsonBody is: ' + jsonBody);
+
+                Http http = new Http();
+    
+                if(!Test.isRunningTest()){
+                    HTTPResponse res = http.send(req);
+                    responseJSN = res.getBody();
+                    JSONParser parser = JSON.createParser(responseJSN);
+                    while (parser.nextToken() != null) {
+                        if(parser.getText() == 'success'){
+                            parser.nextValue();
+                            Boolean retVal = parser.getBooleanValue();
+                            System.debug('endpoint return value['+retVal+']');
+                            if( retVal == true ){
+                                retStatus = 'success';
+                            }
+                            break;
+                        }
+                    }
+                }else{
+                    retStatus = 'success';
+                }
+
+                System.debug('returning ['+ retStatus +']');
+
+                if( retStatus != 'success' ) {
+                    throw new AuraHandledException('Call to endpoint was not successful');
+                }
+            }
 
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());
-        }*/
+        }
 
-        return 'success';
+        return retStatus;
     }
 
     
@@ -110,20 +168,24 @@ public with sharing class auntBerthaCBO {
         config.put('username', customSettings.get('username').Value__c);
         config.put('password', customSettings.get('password').Value__c);
 
+        //System.debug('config [' + config.values() + ']');
+
         String ABEndpoint = customSettings.get('endpoint').Value__c;
         String tokenEndpoint = customSettings.get('endpoint').Value__c+'/v3/authenticate';
-        String responseXML;
+        String responseJSN;
 
         Map<String, String> tokenData = new Map<String, String>();
 
-        tokenData.put('username', customSettings.get('ab_username').Value__c);
-        tokenData.put('password', customSettings.get('ab_password').Value__c);
+        tokenData.put('username', customSettings.get('username').Value__c);
+        tokenData.put('password', customSettings.get('password').Value__c);
         tokenData.put('api_key', customSettings.get('api_key').Value__c);
+
+        //System.debug('tokenData [' + tokenData.values() + ']');
 
         String jsonBody = JSON.serialize(tokenData);
 
-        System.debug('preparing for authenticate call. endpoint is: ' + tokenEndpoint);
-        System.debug('preparing for authenticate call. jsonBody is: ' + jsonBody);
+        //System.debug('preparing for authenticate call. endpoint is: ' + tokenEndpoint);
+        //System.debug('preparing for authenticate call. jsonBody is: ' + jsonBody);
 
         HttpRequest req = new HttpRequest();
         req.setMethod('POST');
@@ -136,19 +198,19 @@ public with sharing class auntBerthaCBO {
         if(!Test.isRunningTest()){
             Http http = new Http();
             HTTPResponse res = http.send(req);
-            responseXML = res.getBody();
+            responseJSN = res.getBody();
 
-            System.debug('response return from authentication call: '+responseXML);
-            JSONParser parser = JSON.createParser(responseXML);
+            System.debug('response return from authentication call: '+responseJSN);
+            JSONParser parser = JSON.createParser(responseJSN);
             while (parser.nextToken() != null) {
                 if(parser.getText() == 'token'){
                     parser.nextToken();
                     Map<String, String> retMap = new Map<String, String>();
                     retMap.put('token', parser.getText());
-                    retMap.put('endpoint', ABEndpoint);
+                    retMap.put('endpoint', ABEndpoint);     
 
-                    System.debug('token is ' + retMap.get('token'));
-                    System.debug('endpoint is' + retMap.get('endpoint'));
+                    //System.debug('token is ' + retMap.get('token'));
+                    //System.debug('endpoint is ' + retMap.get('endpoint'));
                     return retMap;
                 }
             }

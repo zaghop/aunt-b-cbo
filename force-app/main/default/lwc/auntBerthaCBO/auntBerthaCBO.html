@@ -1,29 +1,29 @@
 <template>
     <template if:true={showSpinner}>
-        <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
+            <lightning-spinner variant="brand" alternative-text="Loading" size="large"></lightning-spinner>
     </template>
     <lightning-card>
         <div class="slds-card__body slds-card__body_inner">
             <lightning-button-group>
                 <lightning-button label="Refresh"></lightning-button>
-                <lightning-button label="New" onclick={openNewModal}></lightning-button>
+                <!--lightning-button label="New" onclick={openNewModal}></lightning-button -->
             </lightning-button-group>
-            <lightning-icon icon-name="utility:setup" alternative-text="Close Modal" title="Close"
-                        style="color:#FFF" onclick={openSettings}></lightning-icon>
-            <c-aunt-bertha-referral-manager-auth if:true={showSettings} onclosesettings={closeSettings}></c-aunt-bertha-referral-manager-auth>
-            <lightning-datatable
-                key-field="id"
-                data={data}
-                columns={columns}
-                onrowaction={handleRowAction}>
+            <lightning-icon icon-name="utility:setup" alternative-text="Close Modal" title="Close" style="color:#FFF"
+                onclick={openSettings}></lightning-icon>
+            <c-aunt-bertha-referral-manager-auth if:true={showSettings} onclosesettings={closeSettings}>
+            </c-aunt-bertha-referral-manager-auth>
+            <lightning-datatable key-field="id" data={data} columns={columns} onrowaction={handleRowAction}>
             </lightning-datatable>
         </div>
         <template if:true={showNewModal}>
-            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
                     <header class="slds-modal__header">
-                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeNewModal}>
-                            <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close" onclick={closeNewModal}>
+                            <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                                size="small"></lightning-icon>
                             <span class="slds-assistive-text">Close</span>
                         </button>
                         <h2 id="modal-heading-02" class="slds-modal__title slds-hyphenate">Create New Referral</h2>
@@ -36,20 +36,24 @@
                             <div class="slds-grid">
                                 <div class="slds-col slds-size_1-of-2">
                                     <lightning-input-field field-name="Program__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Status__c" value="not yet helped"></lightning-input-field>
+                                    <lightning-input-field field-name="Status__c" value="not yet helped">
+                                    </lightning-input-field>
                                     <lightning-input-field field-name="Contact_Preferences__c"></lightning-input-field>
                                 </div>
                                 <div class="slds-col slds-size_1-of-2">
                                     <lightning-input-field field-name="Receiver_First_Name__c"></lightning-input-field>
                                     <lightning-input-field field-name="Receiver_Last_Name__c"></lightning-input-field>
                                     <lightning-input-field field-name="Receiver_Email__c"></lightning-input-field>
-                                    <lightning-input-field field-name="Receiver_Phone_Number__c"></lightning-input-field>
+                                    <lightning-input-field field-name="Receiver_Phone_Number__c">
+                                    </lightning-input-field>
                                     <lightning-input-field field-name="Comment__c"></lightning-input-field>
                                 </div>
                             </div>
                             <div class="slds-grid">
-                                <lightning-button class="slds-m-top_small" label="Cancel" onclick={closeNewModal}></lightning-button>
-                                <lightning-button class="slds-m-top_small" type="submit" label="Save" variant="brand"></lightning-button>
+                                <lightning-button class="slds-m-top_small" label="Cancel" onclick={closeNewModal}>
+                                </lightning-button>
+                                <lightning-button class="slds-m-top_small" type="submit" label="Save" variant="brand">
+                                </lightning-button>
                             </div>
                         </lightning-record-edit-form>
                         <!-- lightning-record-form object-api-name="Referral__c" fields={fields} columns="2"
@@ -66,11 +70,14 @@
             <div class="slds-backdrop slds-backdrop_open"></div>
         </template>
         <template if:true={showRecordModal}>
-            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
                     <header class="slds-modal__header">
-                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeRecordModal}>
-                            <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close" onclick={closeRecordModal}>
+                            <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                                size="small"></lightning-icon>
                             <span class="slds-assistive-text">Close</span>
                         </button>
                         <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Referral Record</h2>
@@ -91,18 +98,23 @@
                                 </div>
                                 <div class="slds-col slds-size_1-of-2">
                                     <lightning-output-field field-name="Needs_Follow_Up__c"></lightning-output-field>
-                                    <lightning-output-field field-name="Receiver_First_Name__c"></lightning-output-field>
+                                    <lightning-output-field field-name="Receiver_First_Name__c">
+                                    </lightning-output-field>
                                     <lightning-output-field field-name="Receiver_Last_Name__c"></lightning-output-field>
                                     <lightning-output-field field-name="Receiver_Email__c"></lightning-output-field>
-                                    <lightning-output-field field-name="Receiver_Phone_Number__c"></lightning-output-field>
-                                    <lightning-output-field field-name="Contact_Preferences__c"></lightning-output-field>
+                                    <lightning-output-field field-name="Receiver_Phone_Number__c">
+                                    </lightning-output-field>
+                                    <lightning-output-field field-name="Contact_Preferences__c">
+                                    </lightning-output-field>
                                 </div>
                             </div>
                             <div class="slds-grid">
-                                <lightning-button class="slds-m-top_small" label="Cancel" onclick={closeRecordModal}></lightning-button>
-                                <lightning-button class="slds-m-top_small" type="submit" label="Save" variant="brand"></lightning-button>
+                                <lightning-button class="slds-m-top_small" label="Cancel" onclick={closeRecordModal}>
+                                </lightning-button>
+                                <lightning-button class="slds-m-top_small" type="submit" label="Save" variant="brand">
+                                </lightning-button>
                             </div>
-                            
+
                         </lightning-record-edit-form>
                     </div>
                 </div>
