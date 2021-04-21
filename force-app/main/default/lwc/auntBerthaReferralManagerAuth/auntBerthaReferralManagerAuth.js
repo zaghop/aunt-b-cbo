@@ -3,11 +3,13 @@ import AB_LOGO from '@salesforce/resourceUrl/AuntBerthaLogo';
 import saveCreds from "@salesforce/apex/AuntBerthaReferralManager.saveCreds";
 import saveOptions from "@salesforce/apex/AuntBerthaReferralManager.saveOptions";
 import getSettings from "@salesforce/apex/AuntBerthaReferralManager.getSettings";
+import importAllRefsFromAB from "@salesforce/apex/AuntBerthaReferralManager.importAllRefsFromAB";
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class AuntBerthaReferralManagerAuth extends LightningElement {
     settings = {};
     @api selectedStep;
+    @api importSpinner;
 
     abLogo = AB_LOGO;
 
@@ -119,8 +121,33 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         return false;
     }
 
-    startImport(e) {
-        console.log('start');
+    get showImportSpinner(){
+        return this.importSpinner;
+    }
+
+    startImport = (e) => {
+
+        this.importSpinner = true;
+        console.log('in startImport 1');
+
+        importAllRefsFromAB()
+        .then(result => {
+            this.importSpinner = false;
+        })
+        .catch(error => {
+            if ( error.body.message) {
+                const evt_e = new ShowToastEvent({
+                    title: "Error",
+                    message: error.body.message,
+                    variant: "error"
+                });
+                this.dispatchEvent(evt_e);
+            }
+            this.importSpinner = false;
+        });
+
+        
+
     }
 
     toggleImportConfirm(e) {
