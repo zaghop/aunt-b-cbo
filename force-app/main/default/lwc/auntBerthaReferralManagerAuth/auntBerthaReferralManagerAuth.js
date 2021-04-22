@@ -4,6 +4,7 @@ import saveCreds from "@salesforce/apex/AuntBerthaReferralManager.saveCreds";
 import saveOptions from "@salesforce/apex/AuntBerthaReferralManager.saveOptions";
 import getSettings from "@salesforce/apex/AuntBerthaReferralManager.getSettings";
 import importAllRefsFromAB from "@salesforce/apex/AuntBerthaReferralManager.importAllRefsFromAB";
+import postToChatter from '@salesforce/apex/AuntBerthaReferralManager.postToChatter';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class AuntBerthaReferralManagerAuth extends LightningElement {
@@ -131,6 +132,9 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         console.log('in startImport 1');
 
         importAllRefsFromAB()
+        .then( func =>{
+            postToChatter();
+        })
         .then(result => {
             this.importSpinner = false;
         })

@@ -3,6 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 import getAllReferrals from '@salesforce/apex/auntBerthaCBO.getAllReferrals';
 import sendStatusToEndpoint from '@salesforce/apex/auntBerthaCBO.sendStatusToEndpoint';
 import processNewReferralRecord from '@salesforce/apex/auntBerthaCBO.processNewReferralRecord';
+import importAllRefsFromAB from '@salesforce/apex/AuntBerthaReferralManager.importAllRefsFromAB';
 import REFERRALID_FIELD from '@salesforce/schema/Referral__c.Referral_ID__c';
 import STATUS_FIELD from '@salesforce/schema/Referral__c.Status__c';
 import FOLLOWUP_FIELD from '@salesforce/schema/Referral__c.Needs_Follow_Up__c';
@@ -41,6 +42,7 @@ export default class AuntBerthaCBO extends LightningElement {
 		this.loadReferrals();
 	}
 	loadReferrals() {
+        importAllRefsFromAB();
 		getAllReferrals()
 			.then(result => {
                 this.data = result;
@@ -183,7 +185,7 @@ export default class AuntBerthaCBO extends LightningElement {
     closeSettings = () => {
         this.showSettings = false;
     }
-
+    
     handleCreateNewReferral = (event) => {
         console.log('Referral detail : ',event.detail.fields);
         this.showNewModal = false;

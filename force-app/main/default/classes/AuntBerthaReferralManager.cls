@@ -250,18 +250,19 @@ public with sharing class AuntBerthaReferralManager {
             if(ABtoken != null){
 
                 List<Referral__c> realRefList = new List<Referral__c>();
-
-                String endpoint =  ABtoken.get('endpoint')+'/v3/referrals';
     
                 String responseJSN;
-                String ABnextPage;
+                String ABnextPage = '';
 
+                Integer pageLimit = 5000;
+                Integer runningOffset = 0;
                 Integer newRecordsCount = 0;
                 Integer updateRecordsCount = 0;
                 Integer failedRecordsCount = 0;
 
+
                 do{
-                    ABnextPage = '';
+                    String endpoint =  ABtoken.get('endpoint')+'/v3/referrals?limit='+pageLimit;
                     HttpRequest req = new HttpRequest();
                     req.setMethod('GET');
                     req.setHeader('Authorization', 'Bearer '+ABtoken.get('token'));
@@ -269,18 +270,11 @@ public with sharing class AuntBerthaReferralManager {
                     req.setTimeout(60000);
                     req.setEndpoint(endpoint);
 
-                    // at this time, we're not sending any params
-                    /*String jsonString = '';
-                    // notice api call needs updated_date, but returned object has date_updated
-                    if(String.isBlank(nextPage)){
-                        jsonString = '{"updated_date":{"gte":"'+pastDate+'","lte":"'+tomorrowDate+'"}}';
+                    if(! String.isBlank(ABnextPage)){
+                        endpoint += '&offset='+runningOffset;
                     }
-                    else{
-                        jsonString = '{"updated_date":{"gte":"'+pastDate+'","lte":"'+tomorrowDate+'"}, "next_page":"'+nextPage+'"}';
-                    }
-                    req.setBody(jsonString);
 
-                    system.debug('call jsonString ['+jsonString+']');*/
+                    system.debug('Full endpoint ['+endpoint+']');
 
                     if(!Test.isRunningTest()){
                         try{
@@ -356,6 +350,7 @@ public with sharing class AuntBerthaReferralManager {
 
                             ABnextPage = (String) ABresponseData.get('next_page');
                             if(! String.isBlank(ABnextPage)){
+                                runningOffset += pageLimit;
                                 system.debug('will call for next_page ['+ABnextPage+']');
                             }
 
@@ -368,16 +363,26 @@ public with sharing class AuntBerthaReferralManager {
                     }
                 }
                 while(! String.isBlank(ABnextPage));
-
-                // post message to chatter
-                FeedItem post = new FeedItem();
-                post.ParentId = userInfo.getUserId();
-                post.Body = 'Aunt Bertha referrals import completed.\nNew records added: '+ newRecordsCount +
-                                '\nExisting records updated: '+ updateRecordsCount +
-                                '\nFailed to process: '+ failedRecordsCount +'\n\n';
-                insert post;
             }
         System.debug('End of function');
         }
         
+        @AuraEnabled
+        public static void postToChatter(){
+            try {
+
+                // post message to chatter
+                FeedItem post = new FeedItem();
+                post.ParentId = userInfo.getUserId();
+                post.Body = 'Aunt Bertha referrals import completed.';
+                /*\nNew records added: '+ newRecordsCount +
+                                '\nExisting records updated: '+ updateRecordsCount +
+                                '\nFailed to process: '+ failedRecordsCount +'\n\n';*/
+                insert post;
+                
+                System.debug('Posted to chatter');
+            } catch (Exception e) {
+                throw new AuraHandledException(e.getMessage());
+            }
+        }
 }
