@@ -1,7 +1,7 @@
 public with sharing class AuntBerthaReferralManager {
         public AuntBerthaReferralManager() {}
 
-        @AuraEnabled(cacheable=true)
+        /*@AuraEnabled(cacheable=true)
         public static Account getAccount(String contactId){
             Account account = new Account();
             if(Schema.sObjectType.Account.fields.Name.isAccessible() &&
@@ -12,7 +12,7 @@ public with sharing class AuntBerthaReferralManager {
                     account = [SELECT Id, Name, Phone, BillingPostalCode, (Select Email from Contacts LIMIT 1) FROM Account WHERE Id =: contactId LIMIT 1];
             }
             return account;
-        }
+        }*/
     
 
         @AuraEnabled(cacheable=true)
@@ -107,275 +107,315 @@ public with sharing class AuntBerthaReferralManager {
             Map<String, ab_ref_mgr__c> newSettings = ab_ref_mgr__c.getall();
             config.put('get_closed', newSettings.get('get_closed').Value__c);
             config.put('update_interval', newSettings.get('update_interval').Value__c);
+
+            // remove any old values from CronTrigger.
+            String jobName = 'AuntBertha Referral Import';
+            List<CronTrigger> oldCT_list  = [select Id, CronJobDetail.Name from CronTrigger where CronJobDetail.Name = :jobName];
+            for(CronTrigger ct : oldCT_list){
+                System.abortjob(ct.Id);
+                system.debug('will abort job with id['+ ct.Id +']');
+            }
+
+            // insert new records
+            Integer dailyUpdateCount = Integer.valueOf(config.get('update_interval'));
+            system.debug('new dailyUpdateCount is ['+ dailyUpdateCount +']');
+            if(dailyUpdateCount == 1){
+                // 4am
+                System.schedule(jobName, '0 0 4 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+            else if(dailyUpdateCount == 2){
+                // 4am, 12pm
+                System.schedule(jobName, '0 0 4,12 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+            else if(dailyUpdateCount == 3){
+                // 4am, 12pm, 3pm
+                System.schedule(jobName, '0 0 4,12,15 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+            else if(dailyUpdateCount == 4){
+                // 4am, 12pm, 3pm, 6pm
+                System.schedule(jobName, '0 0 4,12,15,18 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+            else{
+                // default at least once at 4am
+                System.schedule(jobName, '0 0 4 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+
             return config;
         }
 
+        @AuraEnabled
         @future (callout=true)
-        public static void updateReferrals(){
-            Map<String, String> config = new Map<String, String>();
-            Map<String, ab_ref_mgr__c	> customSettings = ab_ref_mgr__c.getall();
-            config.put('api_key', customSettings.get('api_key').Value__c);
-            config.put('endpoint', customSettings.get('endpoint').Value__c);
-            config.put('username', customSettings.get('username').Value__c);
-            config.put('password', customSettings.get('password').Value__c);
+        public static void updateReferralRecordsFromAB(String nextPage){
+            Map<String, String> ABtoken = auntBerthaCBO.getABEndpointAuthToken();
 
-            String tokenEnpoint = customSettings.get('endpoint').Value__c+'/v3/authenticate';
-            String responseXML;
+            if(ABtoken != null){
 
-            Map<String, String> tokenData = new Map<String, String>();
+                String endpoint =  ABtoken.get('endpoint')+'/v3/referrals/:search';
+    
+                String responseJSN;
 
-            tokenData.put('username', customSettings.get('ab_username').Value__c);
-            tokenData.put('password', customSettings.get('ab_password').Value__c);
-            tokenData.put('api_key', customSettings.get('api_key').Value__c);
+                HttpRequest req = new HttpRequest();
+                req.setMethod('POST');
+                req.setHeader('Authorization', 'Bearer '+ABtoken.get('token'));
+                req.setHeader('Content-Type', 'application/json');
+                req.setTimeout(60000);
+                req.setEndpoint(endpoint);
 
-            String jsonBody = JSON.serialize(tokenData);
+                Integer xDaysAgo = -17;     // negative for past days
+                String pastMonth = String.valueOf(date.today().addDays(xDaysAgo).month());
+                String pastDay = String.valueOf(date.today().addDays(xDaysAgo).day());
+                String pastYear = String.valueOf(date.today().addDays(xDaysAgo).year());
+                String pastDate = pastYear+'-'+pastMonth+'-'+pastDay;
+    
+                String tomorrowMonth = String.valueOf(date.today().addDays(1).month());
+                String tomorrowDay = String.valueOf(date.today().addDays(1).day());
+                String tomorrowYear = String.valueOf(date.today().addDays(1).year());
+                String tomorrowDate = tomorrowYear+'-'+tomorrowMonth+'-'+tomorrowDay;
 
-            HttpRequest req = new HttpRequest();
-            req.setMethod('POST');
-            req.setTimeout(60000);
-            req.setHeader('content-type', 'application/json;charset=UTF-8');
-            req.setHeader('Content-Length', String.valueOf(jsonBody.length()));
-            req.setEndpoint(tokenEnpoint);
-            req.setBody(jsonBody);
-
-            //Execute web service call here 
-            if(!Test.isRunningTest()){
-                Http http = new Http();
-                HTTPResponse res = http.send(req);
-                responseXML = res.getBody();
-                JSONParser parser = JSON.createParser(responseXML);
-                while (parser.nextToken() != null) {
-                    if(parser.getText() == 'token'){
-                        parser.nextToken();
-                        queryRefs(parser.getText(), config);
-                    }
+                String jsonString = '';
+                // notice api call needs updated_date, but returned object has date_updated
+                if(String.isBlank(nextPage)){
+                    jsonString = '{"updated_date":{"gte":"'+pastDate+'","lte":"'+tomorrowDate+'"}}';
                 }
-            }else{
-                queryRefs('234234asdfasfasfasfasfasfasf', config);
+                else{
+                    jsonString = '{"updated_date":{"gte":"'+pastDate+'","lte":"'+tomorrowDate+'"}, "next_page":"'+nextPage+'"}';
+                }
+                req.setBody(jsonString);
+
+                system.debug('call jsonString ['+jsonString+']');
+
+                if(!Test.isRunningTest()){
+                    try{
+
+                        Http http = new Http();
+                        HTTPResponse res = http.send(req);
+                        responseJSN = res.getBody();
+                        //system.debug('response from endpoint ['+responseJSN+']');
+
+                        Map<String, Object> ABresponseMap = (Map<String, Object>) JSON.deserializeUntyped(responseJSN);
+
+                        Map<String, Object> ABresponseData = (Map<String, Object>) ABresponseMap.get('data');
+
+                        List<Object> ABrefObjList = (List<Object>)ABresponseData.get('referrals');
+                        system.debug('['+ABrefObjList.size()+'] referrals were received from endpoint');
+
+                        List<Referral__c> realRefList = new List<Referral__c>();
+            
+                        for(Object ABrefObj: ABrefObjList){
+                            Map<String, Object> ABref = (Map<String, Object>)ABrefObj;
+                            system.debug('Id is ['+ABref.get('id')+']');
+
+                            Map<String, Object> ABresp_program = (Map<String, Object>)ABref.get('program');
+                            Map<String, Object> ABresp_receiver = (Map<String, Object>)ABref.get('receiver');
+
+                            Referral__c realRef = new Referral__c();
+                            realRef.Referral_ID__c = (String)ABref.get('id');
+                            realRef.Program__c = (String)ABresp_program.get('id');
+                            //realRef.Sender_Username__c = (String)ABref.get('sender_username');
+                            realRef.Receiver_Email__c = (String)ABresp_receiver.get('email');
+                            realRef.Receiver_First_Name__c = (String)ABresp_receiver.get('first_name');
+                            realRef.Receiver_Last_Name__c = (String)ABresp_receiver.get('last_name');
+                            realRef.Receiver_Phone_Number__c = (String)ABresp_receiver.get('phone_number');
+                            realRef.Status__c = (String)ABref.get('status');
+                            realRef.Comment__c = (String)ABref.get('comment');
+
+                            List<Object> cp_values = (List<Object>)ABref.get('contact_preferences');
+                            if(cp_values != null){
+                                realRef.Contact_Preferences__c = String.join(cp_values, ';');
+                            }
+                            else{
+                                realRef.Contact_Preferences__c = '';
+                            }
+
+                            realRef.Name = (String)ABresp_receiver.get('first_name') + ' ' + (String)ABresp_receiver.get('last_name');
+                            realRef.Needs_Follow_Up__c = (Boolean)ABref.get('needs_follow_up');
+                            realRefList.add(realRef);
+
+                            system.debug('added referral__c to list ['+realRef+']');
+                        }
+
+                        system.debug('upserting ['+realRefList.size()+'] records');
+            
+                        //upsert realRefList Referral_ID__c;
+                        Integer newRecordsCount = 0;
+                        Integer updateRecordsCount = 0;
+                        Integer failedRecordsCount = 0;
+
+                        Database.UpsertResult[] results = Database.upsert(realRefList, Referral__c.Referral_ID__c);
+                        for(Integer i = 0; i < results.size(); i++) {
+                            if(results[i].isSuccess()) {
+                                if(results[i].isCreated()) {
+                                    newRecordsCount++;
+                                } else {
+                                    updateRecordsCount++;
+                                }
+                            } else {
+                                failedRecordsCount++;
+                            }
+                        }
+                        System.debug('New records added ['+ newRecordsCount +']');
+                        System.debug('Existing records updated ['+ updateRecordsCount +']');
+                        System.debug('Failed to process ['+ failedRecordsCount +']');
+
+
+                        String ABnextPage = (String) ABresponseData.get('next_page');
+                        if(! String.isBlank(ABnextPage)){
+                            // recursive call
+                            system.debug('recursive call for search\'s next_page ['+ABnextPage+']');
+                            updateReferralRecordsFromAB(ABnextPage);
+                        }
+
+                    }
+                    catch (Exception e) {
+                        throw new AuraHandledException(e.getMessage());
+                    }
+                }else{
+                    System.debug('Do something for test');
+                }
             }
         }
+
+        @AuraEnabled
+        @future (callout=true)
+        public static void importAllRefsFromAB(){
+            Map<String, String> ABtoken = auntBerthaCBO.getABEndpointAuthToken();
+
+            if(ABtoken != null){
+
+                List<Referral__c> realRefList = new List<Referral__c>();
+    
+                String responseJSN;
+                String ABnextPage = '';
+
+                Integer pageLimit = 5000;
+                Integer runningOffset = 0;
+                Integer newRecordsCount = 0;
+                Integer updateRecordsCount = 0;
+                Integer failedRecordsCount = 0;
+
+
+                do{
+                    String endpoint =  ABtoken.get('endpoint')+'/v3/referrals?limit='+pageLimit;
+                    HttpRequest req = new HttpRequest();
+                    req.setMethod('GET');
+                    req.setHeader('Authorization', 'Bearer '+ABtoken.get('token'));
+                    req.setHeader('Content-Type', 'application/json');
+                    req.setTimeout(60000);
+                    req.setEndpoint(endpoint);
+
+                    if(! String.isBlank(ABnextPage)){
+                        endpoint += '&offset='+runningOffset;
+                    }
+
+                    system.debug('Full endpoint ['+endpoint+']');
+
+                    if(!Test.isRunningTest()){
+                        try{
+
+                            Http http = new Http();
+                            HttpRequest empty_req = new HttpRequest();
+                            HTTPResponse res = http.send(req);
+                            responseJSN = res.getBody();
+                            system.debug('response from endpoint ['+responseJSN+']');
+
+                            //if(responseJSN)
+                            Map<String, Object> ABresponseMap = (Map<String, Object>) JSON.deserializeUntyped(responseJSN);
+
+                            Map<String, Object> ABresponseData = (Map<String, Object>) ABresponseMap.get('data');
+
+                            List<Object> ABrefObjList = (List<Object>)ABresponseData.get('referrals');
+                            system.debug('['+ABrefObjList.size()+'] referrals were received from endpoint');
+
+                
+                            for(Object ABrefObj: ABrefObjList){
+                                Map<String, Object> ABref = (Map<String, Object>)ABrefObj;
+                                system.debug('Id is ['+ABref.get('id')+']');
+
+                                Map<String, Object> ABresp_program = (Map<String, Object>)ABref.get('program');
+                                Map<String, Object> ABresp_receiver = (Map<String, Object>)ABref.get('receiver');
+
+                                Referral__c realRef = new Referral__c();
+                                realRef.Referral_ID__c = (String)ABref.get('id');
+                                realRef.Program__c = (String)ABresp_program.get('id');
+                                //realRef.Sender_Username__c = (String)ABref.get('sender_username');
+                                realRef.Receiver_Email__c = (String)ABresp_receiver.get('email');
+                                realRef.Receiver_First_Name__c = (String)ABresp_receiver.get('first_name');
+                                realRef.Receiver_Last_Name__c = (String)ABresp_receiver.get('last_name');
+                                realRef.Receiver_Phone_Number__c = (String)ABresp_receiver.get('phone_number');
+                                realRef.Status__c = (String)ABref.get('status');
+                                realRef.Comment__c = (String)ABref.get('comment');
+
+                                List<Object> cp_values = (List<Object>)ABref.get('contact_preferences');
+                                if(cp_values != null){
+                                    realRef.Contact_Preferences__c = String.join(cp_values, ';');
+                                }
+                                else{
+                                    realRef.Contact_Preferences__c = '';
+                                }
+
+                                realRef.Name = (String)ABresp_receiver.get('first_name') + ' ' + (String)ABresp_receiver.get('last_name');
+                                realRef.Needs_Follow_Up__c = (Boolean)ABref.get('needs_follow_up');
+                                realRefList.add(realRef);
+
+                                system.debug('added referral__c to list ['+realRef+']');
+                            }
+
+                            system.debug('upserting ['+realRefList.size()+'] records');
+                
+                            //upsert realRefList Referral_ID__c;
+
+                            Database.UpsertResult[] results = Database.upsert(realRefList, Referral__c.Referral_ID__c);
+                            for(Integer i = 0; i < results.size(); i++) {
+                                if(results[i].isSuccess()) {
+                                    if(results[i].isCreated()) {
+                                        newRecordsCount++;
+                                    } else {
+                                        updateRecordsCount++;
+                                    }
+                                } else {
+                                    failedRecordsCount++;
+                                }
+                            }
+                            System.debug('New records added ['+ newRecordsCount +']');
+                            System.debug('Existing records updated ['+ updateRecordsCount +']');
+                            System.debug('Failed to process ['+ failedRecordsCount +']');
+
+
+                            ABnextPage = (String) ABresponseData.get('next_page');
+                            if(! String.isBlank(ABnextPage)){
+                                runningOffset += pageLimit;
+                                system.debug('will call for next_page ['+ABnextPage+']');
+                            }
+
+                        }
+                        catch (Exception e) {
+                            throw new AuraHandledException(e.getMessage());
+                        }
+                    }else{
+                        System.debug('Do something for test');
+                    }
+                }
+                while(! String.isBlank(ABnextPage));
+            }
+        System.debug('End of function');
+        }
         
-        public static void queryRefs(String token, Map<String, String> config){
-            /*
-            String pastMonth = String.valueOf(date.today().addDays(-7).month());
-            String pastDay = String.valueOf(date.today().addDays(-7).day());
-            String pastYear = String.valueOf(date.today().addDays(-7).year());
-            String pastDate = pastYear+'-'+pastMonth+'-'+pastDay;
+        @AuraEnabled
+        public static void postToChatter(){
+            try {
 
-            String month = String.valueOf(date.today().month());
-            String day = String.valueOf(date.today().day());
-            String year = String.valueOf(date.today().year());
-            String todayDate = year+'-'+month+'-'+day;
-
-            String endpoint =  config.get('endpoint')+'/v3/referrals/:search';
-            String jsonString = '{"created_date":{"gte":"'+pastDate+'","lte":"'+todayDate+'"}}';
-            String responseXML;
-
-            HttpRequest req = new HttpRequest();
-            req.setMethod('POST');
-            req.setHeader('Authorization', 'Bearer '+token);
-            req.setHeader('Content-Type', 'application/json');
-            req.setTimeout(60000);
-            req.setEndpoint(endpoint);
-
-            // setting body
-            req.setBody(jsonString);
-
-            //Execute web service call here     
-            Http http = new Http();
-
-            if(!Test.isRunningTest()){
-                HTTPResponse res = http.send(req);
-                responseXML = res.getBody();
-            }else{
-                responseXML = '{"data":{"next_page":"Tm9uZSAxMA==","referrals":[{"status":"got help","needs_follow_up":false,"sender":{"first_name":"API","last_name":"User","id":"6160784024928256","email":"auntbertha-api@bridgeconnector.co"},"contact_preferances":["email","text"],"patient_id":"","application_key":"","program":{"provider_name":"Domestic Violence Program & Sexual Assault Services","id":"5658907303215104","name":"Emergency Shelter"},"receiver":{"phone_number":"6152933605","first_name":"QA","last_name":"Test","id":"5478118944407552","email":"chayes@bridgeconnector.co"},"date_created":"2019-10-30T15:49:57.186595","id":"1","sent":true},{"status":"referred elsewhere","needs_follow_up":false,"sender":{"first_name":"API","last_name":"User","id":"6160784024928256","email":"auntbertha-api@bridgeconnector.co"},"contact_preferances":["email","text"],"patient_id":"","application_key":"","program":{"provider_name":"YWCA of Nashville & Middle Tennessee ","id":"6749168041197568","name":"Weaver Domestic Violence Center"},"receiver":{"phone_number":"6152933605","first_name":"QA","last_name":"Test","id":"2","email":"chayes@bridgeconnector.co"},"date_created":"2019-10-30T15:50:34.777087","id":"2","sent":true},{"status":"referred elsewhere","needs_follow_up":false,"sender":{"first_name":"API","last_name":"User","id":"6160784024928256","email":"auntbertha-api@bridgeconnector.co"},"contact_preferances":["email","text"],"patient_id":"","application_key":"","program":{"provider_name":"YWCA of Nashville & Middle Tennessee ","id":"6749168041197568","name":"Weaver Domestic Violence Center"},"receiver":{"phone_number":"6152933605","first_name":"QA","last_name":"Test","id":"2","email":"chayes@bridgeconnector.co"},"date_created":"2019-10-30T15:50:34.777087","id":"3","sent":true},{"status":"referred elsewhere","needs_follow_up":false,"sender":{"first_name":"API","last_name":"User","id":"6160784024928256","email":"auntbertha-api@bridgeconnector.co"},"contact_preferances":["email","text"],"patient_id":"","application_key":"","program":{"provider_name":"YWCA of Nashville & Middle Tennessee ","id":"6749168041197568","name":"Weaver Domestic Violence Center"},"receiver":{"phone_number":"6152933605","first_name":"QA","last_name":"Test","id":"2","email":"chayes@bridgeconnector.co"},"date_created":"2019-10-30T15:50:34.777087","id":"4","sent":true},{"status":"needs action","needs_follow_up":false,"sender":{"first_name":"API","last_name":"User","id":"6160784024928256","email":"auntbertha-api@bridgeconnector.co"},"contact_preferances":["email","text"],"patient_id":"","application_key":"","program":{"provider_name":"YWCA of Nashville & Middle Tennessee ","id":"6749168041197568","name":"Weaver Domestic Violence Center"},"receiver":{"phone_number":"6152933605","first_name":"QA","last_name":"Test","id":"2","email":"chayes@bridgeconnector.co"},"date_created":"2019-10-30T15:50:34.777087","id":"5","sent":true},{"status":"no longer interested","needs_follow_up":false,"sender":{"first_name":"API","last_name":"User","id":"6160784024928256","email":"auntbertha-api@bridgeconnector.co"},"contact_preferances":["email","text"],"patient_id":"","application_key":"","program":{"provider_name":"YWCA of Nashville & Middle Tennessee ","id":"6749168041197568","name":"Weaver Domestic Violence Center"},"receiver":{"phone_number":"6152933605","first_name":"QA","last_name":"Test","id":"2","email":"chayes@bridgeconnector.co"},"date_created":"2019-10-30T15:50:34.777087","id":"6","sent":true}]},"success":true}';
+                // post message to chatter
+                FeedItem post = new FeedItem();
+                post.ParentId = userInfo.getUserId();
+                post.Body = 'Aunt Bertha referrals import completed.';
+                /*\nNew records added: '+ newRecordsCount +
+                                '\nExisting records updated: '+ updateRecordsCount +
+                                '\nFailed to process: '+ failedRecordsCount +'\n\n';*/
+                insert post;
+                
+                System.debug('Posted to chatter');
+            } catch (Exception e) {
+                throw new AuraHandledException(e.getMessage());
             }
-
-            Map<String, Object> refMap = (Map<String, Object>) JSON.deserializeUntyped(responseXML);
-            Map<String, Object> refs = (Map<String, Object>) refMap.get('data');
-            List<Object> refList = (List<Object>)refs.get('referrals');
-
-            List<Map<String, Object>> newRefMaps = new List<Map<String, Object>>();
-
-            for(Object ref:refList){
-                newRefMaps.add((Map<String, Object>)ref);
-            }
-
-            List<Task> tasksToUpdate = new List<Task>();
-            List<Case> casesToUpdate = new List<Case>();
-            List<String> refIdList = new List<String>();
-
-            for(Map<String, Object> refData:newRefMaps){
-                String refId = String.valueOf(refData.get('id'));
-                refIdList.add(refId);
-            }
-
-            List<Case> caseList = [SELECT Id, Referral_ID__c, Aunt_Bertha_Status__c, Description from Case Where Status != 'Completed' AND Referral_ID__c in: refIdList];
-            List<Task> taskList = [SELECT Id, Referral_ID__c, Aunt_Bertha_Status__c, Description from Task Where Status != 'Closed' AND Referral_ID__c in: refIdList];
-            
-
-            Map<String, Case> caseMap = new Map<String, Case>();
-            Map<String, Task> taskMap = new Map<String, Task>();
-
-            for(Case singleCase:caseList){
-                String refId = singleCase.Referral_ID__c;
-                caseMap.put(refId, singleCase);
-            }
-
-            for(Task singleTask:taskList){
-                String refId = singleTask.Referral_ID__c;
-                taskMap.put(refId, singleTask);
-            }
-
-            for(Map<String, Object> refData:newRefMaps){
-                Boolean isTask = false;
-                Boolean isCase = false;
-                Boolean hasChanged = false;
-
-                String refId = String.valueOf(refData.get('id'));
-                String status = String.valueOf(refData.get('status'));
-
-                Case tmpCase = new Case();
-                Task tmpTask = new Task();
-
-                if(caseMap.containsKey(refId)){
-                    isCase = true;
-                    tmpCase = caseMap.get(refId);
-                }
-
-                if(taskMap.containsKey(refId)){
-                    isTask = true;
-                    tmpTask = taskMap.get(refId);
-                }
-
-                if(status == tmpTask.Aunt_Bertha_Status__c || status == tmpCase.Aunt_Bertha_Status__c || status == 'not yet'){
-                    continue;
-                }
-
-                String taskDescription;
-                String caseDescription;
-
-                if(tmpTask.Description == null){
-                    taskDescription = '';
-                }else{
-                    taskDescription = tmpTask.Description+'\r\n';
-                }
-
-                if(tmpCase.Description == null){
-                    caseDescription = '';
-                }else{
-                    caseDescription = tmpCase.Description+'\r\n';
-                }
-
-                switch on status {
-                    when 'couldn\'t get help' {
-                        if(isTask){
-                            tmpTask.Status = 'Completed';
-                            tmpTask.Description = taskDescription+'The client could not receive help using this referral.';
-                            tmpTask.Aunt_Bertha_Status__c = status;
-                        }
-
-                        if(isCase){
-                            tmpCase.Status = 'Closed';
-                            tmpCase.Description = caseDescription+'The client could not receive help using this referral.';
-                            tmpCase.Aunt_Bertha_Status__c = status;
-                        }
-
-                        hasChanged = true;
-                    }
-                    when 'got help' {
-                        if(isTask){
-                            tmpTask.Status = 'Completed';
-                            tmpTask.Description = taskDescription+'The client has received the required aid.';
-                            tmpTask.Aunt_Bertha_Status__c = status;
-                        }
-
-                        if(isCase){
-                            tmpCase.Status = 'Closed';
-                            tmpCase.Description = caseDescription+'The client has received the required aid.';
-                            tmpCase.Aunt_Bertha_Status__c = status;
-                        }
-
-                        hasChanged = true;
-                    }
-                    when 'needs action' {
-                        if(isTask){
-                            tmpTask.Status = 'Waiting on someone else';
-                            tmpTask.Description = taskDescription+'Further action is required.';
-                            tmpTask.Aunt_Bertha_Status__c = status;
-                        }
-
-                        if(isCase){
-                            tmpCase.Status = 'Escalated';
-                            tmpCase.Description = caseDescription+'Further action is required.';
-                            tmpCase.Aunt_Bertha_Status__c = status;
-                        }
-
-                        hasChanged = true;
-                    }
-                    when 'no longer interested' {
-                        if(isTask){
-                            tmpTask.Status = 'Completed';
-                            tmpTask.Description = taskDescription+'The client is no longer interested in this service.';
-                            tmpTask.Aunt_Bertha_Status__c = status;
-                        }
-
-                        if(isCase){
-                            tmpCase.Status = 'Closed';
-                            tmpCase.Description = caseDescription+'The client is no longer interested in this service.';
-                            tmpCase.Aunt_Bertha_Status__c = status;
-                        }
-
-                        hasChanged = true;
-                    }
-                    when 'referred elsewhere' {
-                        if(isTask){
-                            tmpTask.Status = 'Completed';
-                            tmpTask.Description = taskDescription+'The client has been referred elsewhere.';
-                            tmpTask.Aunt_Bertha_Status__c = status;
-                        }
-
-                        if(isCase){
-                            tmpCase.Status = 'Closed';
-                            tmpCase.Description = caseDescription+'The client has been referred elsewhere.';
-                            tmpCase.Aunt_Bertha_Status__c = status;
-                        }
-
-                        hasChanged = true;
-                    }
-                    when else{
-                        if(isTask){
-                            tmpTask.Description = taskDescription+'New Status:'+status+'.';
-                            tmpTask.Aunt_Bertha_Status__c = status;
-                        }
-
-                        if(isCase){
-                            tmpCase.Description = caseDescription+'New Status:'+status+'.';
-                            tmpCase.Aunt_Bertha_Status__c = status;
-                        }
-
-                        hasChanged = true;
-                    }
-                }
-
-                if(hasChanged){
-                    if(isTask){
-                        tasksToUpdate.add(tmpTask);
-                    }
-
-                    if(isCase){
-                        casesToUpdate.add(tmpCase);
-                    }
-                }
-            }
-
-            if(tasksToUpdate.size() > 0){
-                update tasksToUpdate;
-            }
-
-            if(casesToUpdate.size() > 0){
-                update casesToUpdate;
-            }
-            */
         }
 }

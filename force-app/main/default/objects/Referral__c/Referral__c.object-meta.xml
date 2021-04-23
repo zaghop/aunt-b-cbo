@@ -149,14 +149,13 @@
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>false</enableReports>
-    <enableSearch>false</enableSearch>
+    <enableSearch>true</enableSearch>
     <enableSharing>true</enableSharing>
     <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
     <label>Referral</label>
     <nameField>
         <label>Referral Name</label>
-        <trackHistory>false</trackHistory>
         <type>Text</type>
     </nameField>
     <pluralLabel>Referrals</pluralLabel>
