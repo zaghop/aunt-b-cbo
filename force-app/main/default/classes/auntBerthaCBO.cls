@@ -30,13 +30,10 @@ public with sharing class auntBerthaCBO {
          
         try {
             // getABEndpointAuthToken() calls AB REST API
-            // we get Map<Aunt Bertha main endpoint, authentication token>
+            // it returns Map<Aunt Bertha main endpoint, authentication token>
             Map<String, String> ABtoken = getABEndpointAuthToken();
 
-            // remove this code after callout is successful
-            //Map<String, String> ABtoken = new Map<String, String>();
-            //ABtoken.put('endpoint', 'https://api.auntberthaqa.com');
-            //ABtoken.put('token', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjczYzYyMjFjMDJhZjU2YjIzMzBhNTk5ODJhZDAzYzhmMmRmYjk4MWQifQ.eyJpc3MiOiJzZWFyY2hiZXJ0aGEtcWExQGFwcHNwb3QuZ3NlcnZpY2VhY2NvdW50LmNvbSIsInN1YiI6ImpvbmF0aGFuQHphZ2hvcC5jb20iLCJpYXQiOjE2MTg1ODk4NTEsImV4cCI6MTY1MDEyNTg1MSwiZW1haWwiOiJqb25hdGhhbkB6YWdob3AuY29tIiwiYXBpX2tleSI6IjdlNzg4MmUyMjNhZWJhYmUyOGU1NjllNDdkOWMxOWQwIn0.G5YupN-5YrfVEP52hUSaKuCCpEDSYdrWXNcpCHlIL85pJ1ga8fnwzG6xGBOmH3bxWADSlshdenkmrDrvUaljLTn46yQ6ErU46GDqDh1FRH5grvrgUGAQYVnpY_e1YeiQ4GWzpccf3o91p-PYFqspY5LNx-VoYpqO8dBo4aIFsaVq9H9QsOBcFyyiVzBk4dWKUlnkjLaPNQohAiPyf8_9jwzBzCmKOUodlF3Z4ybapueWYkP9X20optV14FBOqED_ya_inmJcpeoHY3ofr-0rEZQsK7gPpG2Pmx5T_0gXAttHs5uXpc4WSNHN_s41seoLHiPZEqrbm4AdQiPPmjGdpw'); 
+            System.debug('getABEndpointAuthToken return endpoint['+ABtoken.get('endpoint')+']');
 
             System.debug('getABEndpointAuthToken return endpoint['+ABtoken.get('endpoint')+']');
 
