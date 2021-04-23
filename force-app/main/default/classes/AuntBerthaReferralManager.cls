@@ -107,6 +107,39 @@ public with sharing class AuntBerthaReferralManager {
             Map<String, ab_ref_mgr__c> newSettings = ab_ref_mgr__c.getall();
             config.put('get_closed', newSettings.get('get_closed').Value__c);
             config.put('update_interval', newSettings.get('update_interval').Value__c);
+
+            // remove any old values from CronTrigger.
+            String jobName = 'AuntBertha Referral Import';
+            List<CronTrigger> oldCT_list  = [select Id, CronJobDetail.Name from CronTrigger where CronJobDetail.Name = :jobName];
+            for(CronTrigger ct : oldCT_list){
+                System.abortjob(ct.Id);
+                system.debug('will abort job with id['+ ct.Id +']');
+            }
+
+            // insert new records
+            Integer dailyUpdateCount = Integer.valueOf(config.get('update_interval'));
+            system.debug('new dailyUpdateCount is ['+ dailyUpdateCount +']');
+            if(dailyUpdateCount == 1){
+                // 4am
+                System.schedule(jobName, '0 0 4 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+            else if(dailyUpdateCount == 2){
+                // 4am, 12pm
+                System.schedule(jobName, '0 0 4,12 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+            else if(dailyUpdateCount == 3){
+                // 4am, 12pm, 3pm
+                System.schedule(jobName, '0 0 4,12,15 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+            else if(dailyUpdateCount == 4){
+                // 4am, 12pm, 3pm, 6pm
+                System.schedule(jobName, '0 0 4,12,15,18 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+            else{
+                // default at least once at 4am
+                System.schedule(jobName, '0 0 4 * * ?', new auntBerthaPeriodicReferralImport());
+            }
+
             return config;
         }
 
