@@ -37,16 +37,24 @@ export default class AuntBerthaCBO extends LightningElement {
     fields = [REFERRALID_FIELD, STATUS_FIELD, FOLLOWUP_FIELD, PROGRAM_FIELD];
 
     @api showSettings;
+    @api refreshDatatableSpinner
     
+    get showRefreshSpinner(){
+        return this.refreshDatatableSpinner;
+    }
+
+
     connectedCallback() {
 		this.loadReferrals();
 	}
 	loadReferrals() {
+        this.refreshDatatableSpinner = true;
         importAllRefsFromAB();
 		getAllReferrals()
 			.then(result => {
                 this.data = result;
                 console.log(this.data);
+                this.refreshDatatableSpinner = false;
 			})
 			.catch(error => {
                 this.error = error;

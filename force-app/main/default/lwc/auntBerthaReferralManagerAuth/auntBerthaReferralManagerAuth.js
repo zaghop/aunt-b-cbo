@@ -11,6 +11,7 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
     settings = {};
     @api selectedStep;
     @api importSpinner;
+    @api credentialsSpinner;
 
     abLogo = AB_LOGO;
 
@@ -185,9 +186,14 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         console.log(this.settings);
     }
 
+    get showCredentialsSpinner(){
+        return this.credentialsSpinner;
+    }
+
     //APEX CALLS
     startSaveCreds = (event) => {
         console.log('save creds');
+        this.credentialsSpinner = true;
         const creds = {
             'username': this.settings.username,
             'password': this.settings.password,
@@ -196,6 +202,7 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         this.postData('https://api.auntberthaqa.com/v3/authenticate', creds )
         .then(data => {
             console.log('success',data); // JSON data parsed by `data.json()` call
+            this.credentialsSpinner = false;
             if(data.success){
                 saveCreds({
                     settings: creds

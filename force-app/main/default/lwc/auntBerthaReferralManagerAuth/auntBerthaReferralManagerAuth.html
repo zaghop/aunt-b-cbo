@@ -9,9 +9,13 @@
                 </button>
                 <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Configuration</h2>
             </header>
-            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+            <div class="slds-modal__content slds-p-around_medium" style="min-height: 380px;" id="modal-content-id-1">
                 <div class="slds-grid slds-wrap">
                     <div class="slds-col slds-size_1-of-2">
+                        <template if:true={showCredentialsSpinner}>
+                            <lightning-spinner variant="brand" alternative-text="Loading" size="large"></lightning-spinner>
+                        </template>
+            
                         <div if:true={stepCreds}>
                             <div class="slds-p-bottom_medium">
                                 <div class="slds-text-heading_medium">Login to Aunt Bertha</div>
@@ -28,7 +32,7 @@
                             <div class="slds-form-element">
                                 <label class="slds-form-element__label" for="form-element-01">Password</label>
                                 <div class="slds-form-element__control">
-                                    <input type="text" id="form-element-02" placeholder="****************"
+                                    <input type="password" id="form-element-02" placeholder="****************"
                                         class="slds-input" onchange={handleInputChange} data-name="password"/>
                                 </div>
                             </div>
@@ -108,8 +112,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="slds-col slds-size_1-of-2 slds-align_absolute-center">
-                        <img src={abLogo} style="height:75px" />
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-align_absolute-center">
+                            <img src={abLogo} style="height:75px" />
+                        </div>
                     </div>
                 </div>
             </div>

@@ -4,8 +4,11 @@
     </template>
     <lightning-card>
         <div class="slds-card__body slds-card__body_inner">
+            <template if:true={showRefreshSpinner}>
+                <lightning-spinner variant="brand" alternative-text="Loading" size="large"></lightning-spinner>
+            </template>
             <lightning-button-group>
-                <lightning-button label="Refresh"></lightning-button>
+                <lightning-button label="Refresh" onclick={handleRefreshButton}></lightning-button>
                 <!--lightning-button label="New" onclick={openNewModal}></lightning-button -->
             </lightning-button-group>
             <lightning-icon icon-name="utility:setup" alternative-text="Close Modal" title="Close" style="color:#FFF"
