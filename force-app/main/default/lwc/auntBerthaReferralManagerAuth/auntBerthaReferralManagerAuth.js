@@ -135,7 +135,14 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         importAllRefsFromAB()
         .then( func =>{
             postToChatter();
-        })
+
+            const evt_e = new ShowToastEvent({
+                title: "Success",
+                message: 'Import has been scheduled',
+                variant: "success"
+            });
+            this.dispatchEvent(evt_e);
+    })
         .then(result => {
             this.importSpinner = false;
         })

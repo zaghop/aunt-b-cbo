@@ -37,7 +37,8 @@ export default class AuntBerthaCBO extends LightningElement {
     fields = [REFERRALID_FIELD, STATUS_FIELD, FOLLOWUP_FIELD, PROGRAM_FIELD];
 
     @api showSettings;
-    @api refreshDatatableSpinner
+    @api refreshDatatableSpinner;
+    @api editReferralSpinner;
     
     get showRefreshSpinner(){
         return this.refreshDatatableSpinner;
@@ -140,15 +141,14 @@ export default class AuntBerthaCBO extends LightningElement {
 
     }
 
+    get showEditReferralSpinner(){
+        return this.editReferralSpinner;
+    }
     // after submit is successful 
     handleEditReferralSuccess = (event) => {
         console.log('in handleEditReferralSuccess() 1');
 
-        /* close modal */
-        this.closeRecordModal();            //todo. closing at this point, because spinner is going under the modal
-
-
-        this.showSpinner = true;            // todo. get spinner above edit referral modal dialog.
+        this.editReferralSpinner = true;
         const fields = event.detail.fields;
         //console.log(`fields[${JSON.stringify(fields)}]`);
         const newStat = fields.Status__c.value;
@@ -158,7 +158,7 @@ export default class AuntBerthaCBO extends LightningElement {
 
         sendStatusToEndpoint({ referralId: refId, newStatus: newStat })
 			.then(result => {
-                this.showSpinner = false;
+                this.editReferralSpinner = false;
 
                 this.data = result;
                 const evt = new ShowToastEvent({
@@ -168,13 +168,13 @@ export default class AuntBerthaCBO extends LightningElement {
                 });
                 this.dispatchEvent(evt);
 
-                /* close modal */
-                //this.closeRecordModal();          // I think, ideally we should close it here
+                this.closeRecordModal();
 
                 /* refresh list */
-                //refreshApex(this);
+                this.loadReferrals();
             })
 			.catch(error => {
+                this.editReferralSpinner = false;
                 this.error = error;
                 const evt = new ShowToastEvent({
                     title: "Error updating Record",
