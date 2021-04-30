@@ -37,25 +37,23 @@ export default class AuntBerthaCBO extends LightningElement {
     fields = [REFERRALID_FIELD, STATUS_FIELD, FOLLOWUP_FIELD, PROGRAM_FIELD];
 
     @api showSettings;
-    @api refreshDatatableSpinner;
-    @api editReferralSpinner;
+    @api theSpinner;
     
-    get showRefreshSpinner(){
-        return this.refreshDatatableSpinner;
+    get showSpinner(){
+        return this.theSpinner;
     }
-
 
     connectedCallback() {
 		this.loadReferrals();
 	}
 	loadReferrals() {
-        this.refreshDatatableSpinner = true;
+        this.theSpinner = true;
         importAllRefsFromAB();
 		getAllReferrals()
 			.then(result => {
                 this.data = result;
-                console.log(this.data);
-                this.refreshDatatableSpinner = false;
+                console.log(`local all data after importAllRefsFromAB() [${this.data}]`);
+                this.theSpinner = false;
 			})
 			.catch(error => {
                 this.error = error;
@@ -96,7 +94,7 @@ export default class AuntBerthaCBO extends LightningElement {
 
     // after new record save is successful 
     handleCreateReferralSuccess = (event) => {
-        console.log('1');
+        /*console.log('1');
 
         console.log('fields raw: ', event.detail.fields);
 
@@ -108,17 +106,9 @@ export default class AuntBerthaCBO extends LightningElement {
         this.recordId = event.detail.id;
         console.log(`new record id[${this.recordId}]`);
 
-        // all fields
-        //fields.Street = '32 Prince Street';
-        //this.loadReferrals();
-        //refreshApex(this.data);
         processNewReferralRecord({ recordId: this.recordId })
             .then(result => {
-                /* close modal */
                 this.closeNewModal();
-                
-                /* refresh list */
-                //refreshApex(this);
             })
 			.then(result => {
                 this.data = result;
@@ -137,54 +127,109 @@ export default class AuntBerthaCBO extends LightningElement {
                     variant: "error"
                 });
                 this.dispatchEvent(evt);
-            });
+            });*/
 
     }
 
-    get showEditReferralSpinner(){
-        return this.editReferralSpinner;
+    // submit clicked 
+    handleEditReferralSubmit = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+
+        console.log('in handleEditReferralSubmit() 1');
+
+        this.theSpinner = true;
+
+        console.log(`details on submit[${JSON.stringify(event.detail)}]`);
+
+        //const fields = event.detail.fields;
+        //console.log(`fields on submit[${JSON.stringify(fields)}]`);
+
+        const newStat = event.detail.fields.Status__c;
+        //const newStat = 'blaaaa';
+
+        console.log(`this.recordId [${this.recordId}], newStat [${newStat}]`);
+
+        // use this.data collected after getAllReferrals() function call earlier 
+        console.log(`this.data collected after getAllReferrals(): ${JSON.stringify(this.data)}`);
+        for(var i=0; i<this.data.length; i++) {
+            if(this.data[i].Id == this.recordId){
+                let refId = this.data[i].Referral_ID__c;
+                let oldStat = this.data[i].Status__c;
+                console.log(`ref_ID[${refId}], oldStat[${oldStat}]`);
+
+                sendStatusToEndpoint({ referralId: refId, newStatus: newStat })
+                .then(result => {
+                    console.log(`back from sendStatusToEndpoint. result[${result}]`);
+
+                    this.theSpinner = false;
+
+                    this.closeRecordModal();
+            
+                    // submit form
+                    this.template.querySelector('lightning-record-edit-form').submit(event.detail.fields);
+        
+                    const evt = new ShowToastEvent({
+                        title: "Record updated",
+                        message: "Record updated",
+                        variant: "success"
+                    });
+                    this.dispatchEvent(evt);
+                })
+                .catch(error => {
+                    console.log(`catch error from sendStatusToEndpoint [${JSON.stringify(error)}]`);
+
+                    this.theSpinner = false;
+
+                    this.closeRecordModal();
+
+                    this.error = error;
+                    const evt = new ShowToastEvent({
+                        title: "Error updating Record at AB",
+                        message: 'Status not changed',
+                        variant: "error"
+                    });
+                    this.dispatchEvent(evt);
+
+                });
+
+                break;
+            }
+        }
     }
-    // after submit is successful 
+
+    // save succeeded.    
     handleEditReferralSuccess = (event) => {
-        console.log('in handleEditReferralSuccess() 1');
+        console.log('in handleEditReferralSuccess 1');
+        console.log(`success event [${JSON.stringify(event.detail.fields.Status__c)}]`);
 
-        this.editReferralSpinner = true;
-        const fields = event.detail.fields;
-        //console.log(`fields[${JSON.stringify(fields)}]`);
-        const newStat = fields.Status__c.value;
-        //console.log(fields.Status__c);
-        const refId = fields.Referral_ID__c.value;
-        //console.log(`refId[${refId}]`);
+        // if we can dynamically display just the changed status, we can avoid reload of whole datatable
+        /*for(var i=0; i<this.data.length; i++) {
+            if(this.data[i].Id == this.recordId){
+                console.log(`in handleEditReferralSuccess loop#${i}`);
+                this.data[i].Status__c = event.detail.fields.Status__c.value;
+            }
+        }
+        console.log(`precision status change in datatable [${JSON.stringify(this.data)}]`);
+        */
 
-        sendStatusToEndpoint({ referralId: refId, newStatus: newStat })
-			.then(result => {
-                this.editReferralSpinner = false;
-
-                this.data = result;
-                const evt = new ShowToastEvent({
-                    title: "Record updated",
-                    message: "Record updated",
-                    variant: "success"
-                });
-                this.dispatchEvent(evt);
-
-                this.closeRecordModal();
-
-                /* refresh list */
-                this.loadReferrals();
-            })
-			.catch(error => {
-                this.editReferralSpinner = false;
-                this.error = error;
-                const evt = new ShowToastEvent({
-                    title: "Error updating Record",
-                    message: this.error,
-                    variant: "error"
-                });
-                this.dispatchEvent(evt);
-            });
-
+        getAllReferrals()
+        .then(result => {
+            this.data = result;
+            console.log(`back from getAllReferrals. result[${JSON.stringify(result)}]`);
+            console.log(`refresh datatable after status update`);
+        })
+        .catch(error => {
+            this.error = error;
+            console.log(this.error);
+        });
     }
+
+    handleEditReferralError = (event) => {
+        console.log('in handleEditReferralError 1');
+        console.log(`error event [${JSON.stringify(event)}]`);
+    }
+
 
     openSettings = () => {
         this.showSettings = true;

@@ -10,8 +10,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 export default class AuntBerthaReferralManagerAuth extends LightningElement {
     settings = {};
     @api selectedStep;
-    @api importSpinner;
-    @api credentialsSpinner;
+    @api theSpinner;
 
     abLogo = AB_LOGO;
 
@@ -123,13 +122,13 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         return false;
     }
 
-    get showImportSpinner(){
-        return this.importSpinner;
+    get showSpinner(){
+        return this.theSpinner;
     }
 
     startImport = (e) => {
 
-        this.importSpinner = true;
+        this.theSpinner = true;
         console.log('in startImport 1');
 
         importAllRefsFromAB()
@@ -142,9 +141,9 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
                 variant: "success"
             });
             this.dispatchEvent(evt_e);
-    })
+        })
         .then(result => {
-            this.importSpinner = false;
+            this.theSpinner = false;
         })
         .catch(error => {
             if ( error.body.message) {
@@ -155,7 +154,7 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
                 });
                 this.dispatchEvent(evt_e);
             }
-            this.importSpinner = false;
+            this.theSpinner = false;
         });
 
         
@@ -193,14 +192,10 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         console.log(this.settings);
     }
 
-    get showCredentialsSpinner(){
-        return this.credentialsSpinner;
-    }
-
     //APEX CALLS
     startSaveCreds = (event) => {
         console.log('save creds');
-        this.credentialsSpinner = true;
+        this.theSpinner = true;
         const creds = {
             'username': this.settings.username,
             'password': this.settings.password,
@@ -209,7 +204,7 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         this.postData('https://api.auntberthaqa.com/v3/authenticate', creds )
         .then(data => {
             console.log('success',data); // JSON data parsed by `data.json()` call
-            this.credentialsSpinner = false;
+            this.theSpinner = false;
             if(data.success){
                 saveCreds({
                     settings: creds
