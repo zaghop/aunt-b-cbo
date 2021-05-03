@@ -1,18 +1,15 @@
 <template>
     <template if:true={showSpinner}>
-            <lightning-spinner variant="brand" alternative-text="Loading" size="large"></lightning-spinner>
+        <lightning-spinner variant="brand" alternative-text="Loading" size="large" style="z-index: 10000;"></lightning-spinner>
     </template>
     <lightning-card>
         <div class="slds-card__body slds-card__body_inner">
-            <template if:true={showRefreshSpinner}>
-                <lightning-spinner variant="brand" alternative-text="Loading" size="large"></lightning-spinner>
-            </template>
-            <lightning-button-group>
-                <lightning-button label="Refresh" onclick={handleRefreshButton}></lightning-button>
-                <!--lightning-button label="New" onclick={openNewModal}></lightning-button -->
-            </lightning-button-group>
-            <lightning-icon icon-name="utility:setup" alternative-text="Close Modal" title="Close" style="color:#FFF"
-                onclick={openSettings}></lightning-icon>
+            <div class="slds-grid slds-grid_reverse">
+                <div class="slds-col slds-size_1-of-12" style="text-align: right;">
+                    <lightning-icon icon-name="utility:setup" alternative-text="Close Modal" title="Close" style="color:#FFF"
+                    onclick={openSettings}></lightning-icon>
+                </div>
+            </div>
             <c-aunt-bertha-referral-manager-auth if:true={showSettings} onclosesettings={closeSettings}>
             </c-aunt-bertha-referral-manager-auth>
             <lightning-datatable key-field="id" data={data} columns={columns} onrowaction={handleRowAction}>
@@ -86,12 +83,11 @@
                         <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Referral Record</h2>
                     </header>
                     <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1"
-                        style="text-align: left; min-height: 600px;">
-                        <template if:true={showEditReferralSpinner}>
-                            <lightning-spinner variant="brand" alternative-text="Loading" size="large"></lightning-spinner>
-                        </template>
+                        style="text-align: left;">
                         <lightning-record-edit-form record-id={recordId} object-api-name="Referral__c"
-                            field-names={fields} onsuccess={handleEditReferralSuccess}>
+                            field-names={fields} onsubmit={handleEditReferralSubmit} 
+                            onsuccess={handleEditReferralSuccess}
+                            onerror={handleEditReferralError}>
 
                             <div class="slds-grid">
                                 <div class="slds-col slds-size_1-of-2">
@@ -104,8 +100,7 @@
                                 </div>
                                 <div class="slds-col slds-size_1-of-2">
                                     <lightning-output-field field-name="Needs_Follow_Up__c"></lightning-output-field>
-                                    <lightning-output-field field-name="Receiver_First_Name__c">
-                                    </lightning-output-field>
+                                    <lightning-output-field field-name="Receiver_First_Name__c"></lightning-output-field>
                                     <lightning-output-field field-name="Receiver_Last_Name__c"></lightning-output-field>
                                     <lightning-output-field field-name="Receiver_Email__c"></lightning-output-field>
                                     <lightning-output-field field-name="Receiver_Phone_Number__c">

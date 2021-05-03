@@ -362,7 +362,7 @@ public with sharing class AuntBerthaReferralManager {
 
                             system.debug('upserting ['+realRefList.size()+'] records');
                 
-                            //upsert realRefList Referral_ID__c;
+                            upsert realRefList Referral_ID__c;
 
                             Database.UpsertResult[] results = Database.upsert(realRefList, Referral__c.Referral_ID__c);
                             for(Integer i = 0; i < results.size(); i++) {
@@ -389,7 +389,13 @@ public with sharing class AuntBerthaReferralManager {
 
                         }
                         catch (Exception e) {
-                            throw new AuraHandledException(e.getMessage());
+                            if(System.isScheduled()){
+                                system.debug(LoggingLevel.ERROR, 'Exception: ['+e.getMessage()+']');
+                                throw e;
+                            }
+                            else {
+                                throw new AuraHandledException(e.getMessage());
+                            }
                         }
                     }else{
                         System.debug('Do something for test');
@@ -415,7 +421,12 @@ public with sharing class AuntBerthaReferralManager {
                 
                 System.debug('Posted to chatter');
             } catch (Exception e) {
-                throw new AuraHandledException(e.getMessage());
+                if(System.isScheduled()){
+                    system.debug(LoggingLevel.ERROR, 'Exception: ['+e.getMessage()+']');
+                }
+                else {
+                    throw new AuraHandledException(e.getMessage());
+                }
             }
         }
 }
