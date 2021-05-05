@@ -7,7 +7,7 @@ public with sharing class auntBerthaPeriodicReferralImport implements Schedulabl
         //System.debug('I am running as scheduled');
 
         try {
-            AuntBerthaReferralManager.importAllRefsFromAB();
+            AuntBerthaReferralManager.importReferralRecordsWithABSearch();
 
             // post message to chatter
             FeedItem post = new FeedItem();

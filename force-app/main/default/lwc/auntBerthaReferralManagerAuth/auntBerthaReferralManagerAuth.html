@@ -76,7 +76,7 @@
                             <div class="slds-p-bottom_medium">
                                 <lightning-combobox name="interval"
                                     label="How often should we check for status updates?" value={intervalValue}
-                                    placeholder="Select Updatee Interval" options={intervalOptions}
+                                    placeholder="Select Update Interval" options={intervalOptions}
                                     onchange={handleIntervalChange}>
                                 </lightning-combobox>
                             </div>
@@ -94,7 +94,8 @@
                                     <div class="slds-text-body_regular">Begin your import and view import progress and history here.</div>
                                 </div>
                                 <div>
-                                    <button class="slds-button slds-button_brand" onclick={toggleImportConfirm}>Start Import</button>
+                                    <div if:true={currentlyImportingReferralRecords} class="slds-text-color_error">Import in progress. You will be notified when it completes.</div>
+                                    <button class="slds-button slds-button_brand" onclick={toggleImportConfirm} disabled={currentlyImportingReferralRecords}>Start Import</button>
                                 </div>
                             </div>
                             <div if:true={showConfirm} style="position:relative">
@@ -103,7 +104,8 @@
                                     <div class="slds-text-body_regular">Click the button below to confirm the historical import. <strong>This process can not be stopped once started.</strong></div>
                                 </div>
                                 <div>
-                                    <button class="slds-button slds-button_neutral" onclick={toggleImportConfirm}>Cancel Import</button><button class="slds-button slds-button_brand" onclick={startImport}>Start Import</button>
+                                    <button class="slds-button slds-button_neutral" onclick={toggleImportConfirm}>Cancel Import</button>
+                                    <button class="slds-button slds-button_brand" onclick={startImport}>Start Import</button>
                                 </div>
                             </div>
                         </div>
@@ -125,7 +127,7 @@
                         <lightning-progress-indicator current-step={selectedStep} type="base" variant="base">
                             <lightning-progress-step label="Verify Credentials" value="creds"
                                 onclick={selectSettingsStep}></lightning-progress-step>
-                            <lightning-progress-step label="Historical Import" value="import"
+                            <lightning-progress-step label="Configuration Options" value="import"
                                 onclick={selectSettingsStep}></lightning-progress-step>
                             <lightning-progress-step label="Import Progress" value="progress"
                                 onclick={selectSettingsStep}>
