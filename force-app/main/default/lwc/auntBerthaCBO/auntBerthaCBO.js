@@ -3,7 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 import getAllReferrals from '@salesforce/apex/auntBerthaCBO.getAllReferrals';
 import sendStatusToEndpoint from '@salesforce/apex/auntBerthaCBO.sendStatusToEndpoint';
 import processNewReferralRecord from '@salesforce/apex/auntBerthaCBO.processNewReferralRecord';
-import importAllRefsFromAB from '@salesforce/apex/AuntBerthaReferralManager.importAllRefsFromAB';
+import getAllRefsFromAB from '@salesforce/apex/AuntBerthaReferralManager.getAllRefsFromAB';
 import REFERRALID_FIELD from '@salesforce/schema/Referral__c.Referral_ID__c';
 import STATUS_FIELD from '@salesforce/schema/Referral__c.Status__c';
 import FOLLOWUP_FIELD from '@salesforce/schema/Referral__c.Needs_Follow_Up__c';
@@ -48,11 +48,11 @@ export default class AuntBerthaCBO extends LightningElement {
 	}
 	loadReferrals() {
         this.theSpinner = true;
-        importAllRefsFromAB();
+        getAllRefsFromAB();
 		getAllReferrals()
 			.then(result => {
                 this.data = result;
-                console.log(`local all data after importAllRefsFromAB() [${this.data}]`);
+                console.log(`local all data after getAllRefsFromAB() [${this.data}]`);
                 this.theSpinner = false;
 			})
 			.catch(error => {

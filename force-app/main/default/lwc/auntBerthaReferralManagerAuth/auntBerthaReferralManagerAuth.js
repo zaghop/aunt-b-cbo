@@ -3,7 +3,9 @@ import AB_LOGO from '@salesforce/resourceUrl/AuntBerthaLogo';
 import saveCreds from "@salesforce/apex/AuntBerthaReferralManager.saveCreds";
 import saveOptions from "@salesforce/apex/AuntBerthaReferralManager.saveOptions";
 import getSettings from "@salesforce/apex/AuntBerthaReferralManager.getSettings";
-import importAllRefsFromAB from "@salesforce/apex/AuntBerthaReferralManager.importAllRefsFromAB";
+import getImportingSetting from "@salesforce/apex/AuntBerthaReferralManager.getCurrentImportingSetting";
+import updateImportingSetting from "@salesforce/apex/AuntBerthaReferralManager.updateCS_importing_referral_records";
+import importReferralRecordsWithABSearch from "@salesforce/apex/AuntBerthaReferralManager.importReferralRecordsWithABSearch";
 import postToChatter from '@salesforce/apex/AuntBerthaReferralManager.postToChatter';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
@@ -11,6 +13,7 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
     settings = {};
     @api selectedStep;
     @api theSpinner;
+    @api currentlyImportingRefs;
 
     abLogo = AB_LOGO;
 
@@ -23,7 +26,15 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         console.log('here');
         getSettings().then(result => {
             this.intervalValue = result.update_interval;
-            this.importClosed = result.get_closed;
+
+            if( result.get_closed.toUpperCase() === 'FALSE'){
+                this.importClosed = null;
+            }
+            else{
+                this.importClosed = result.get_closed;
+            }
+
+            console.log(`settings. intervalValue[${this.intervalValue}], importClosed[${result.get_closed}][${this.importClosed}]`);
         });
     }
 
@@ -54,6 +65,17 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
     get stepProgress(){
         if(this.selectedStep == 'progress')
             return true;
+
+        // get current value of custom setting importing_referral_records
+        getImportingSetting().then(result => {
+            if(result.importing_referral_records){
+                this.currentlyImportingRefs = true;
+            }
+            else{
+                this.currentlyImportingRefs = false;
+            }
+        });
+
         return false;
     }
 
@@ -126,24 +148,36 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         return this.theSpinner;
     }
 
-    startImport = (e) => {
+    get currentlyImportingReferralRecords(){
+        return this.currentlyImportingRefs;
+    }
 
-        this.theSpinner = true;
+    startImport = (e) => {
         console.log('in startImport 1');
 
-        importAllRefsFromAB()
+        console.log('spin it 1');
+        this.theSpinner = true;
+
+        this.currentlyImportingRefs = true;
+        updateImportingSetting({ type: 'start' });
+
+        this.confirmImport = false;     // toggle (close) the window
+
+        importReferralRecordsWithABSearch()
         .then( func =>{
+            console.log('now post to chatter');
             postToChatter();
+
+            this.currentlyImportingRefs = false;
+            updateImportingSetting({ type: 'stop' });
 
             const evt_e = new ShowToastEvent({
                 title: "Success",
-                message: 'Import has been scheduled',
+                message: 'Import has completed',
                 variant: "success"
             });
             this.dispatchEvent(evt_e);
-        })
-        .then(result => {
-            this.theSpinner = false;
+            console.log('show toast: completed');
         })
         .catch(error => {
             if ( error.body.message) {
@@ -155,7 +189,19 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
                 this.dispatchEvent(evt_e);
             }
             this.theSpinner = false;
+            console.log('spinner stopped after error');
         });
+
+        //console.log('show toast: scheduled');
+        /*const evt_e = new ShowToastEvent({
+            title: "Success",
+            message: 'Import has been scheduled',
+            variant: "success"
+        });
+        this.dispatchEvent(evt_e);*/
+
+        this.theSpinner = false;
+        console.log('spinner stopped 1');
 
         
 
@@ -244,12 +290,27 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
           })
             .then(result => {
                 console.log('saved',result);
-                const evt = new ShowToastEvent({
-                    title: 'Options Saved',
-                    message: 'Your Aunt Bertha import options have been saved',
-                    variant: 'success'
-                });
+
+                getSettings().then(result => {
+                    this.intervalValue = result.update_interval;
+        
+                    if( result.get_closed.toUpperCase() === 'FALSE'){
+                        this.importClosed = null;
+                    }
+                    else{
+                        this.importClosed = result.get_closed;
+                    }
+        
+                    console.log(`settings. intervalValue[${this.intervalValue}], importClosed[${result.get_closed}][${this.importClosed}]`);
+
+                    const evt = new ShowToastEvent({
+                        title: 'Options Saved',
+                        message: 'Your Aunt Bertha import options have been saved',
+                        variant: 'success'
+                    });
                 this.dispatchEvent(evt);
+                });
+        
             })
             .catch(e => {
                 console.log('error saving', e);
