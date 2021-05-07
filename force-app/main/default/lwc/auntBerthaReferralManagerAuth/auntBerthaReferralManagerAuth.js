@@ -9,6 +9,13 @@ import importReferralRecordsWithABSearch from "@salesforce/apex/AuntBerthaReferr
 import postToChatter from '@salesforce/apex/AuntBerthaReferralManager.postToChatter';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
+// for inter-component communication
+// Import message service features required for publishing and the message channel
+import { publish, MessageContext } from 'lightning/messageService';
+import ReferralImportCompleted from '@salesforce/messageChannel/Referral_Import_Completed__c';
+
+
+
 export default class AuntBerthaReferralManagerAuth extends LightningElement {
     settings = {};
     @api selectedStep;
@@ -152,6 +159,9 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         return this.currentlyImportingRefs;
     }
 
+    @wire(MessageContext)
+    messageContext;
+
     startImport = (e) => {
         console.log('in startImport 1');
 
@@ -178,6 +188,11 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
             });
             this.dispatchEvent(evt_e);
             console.log('show toast: completed');
+
+            // send LMS message to component 'auntBerthaCBO': (to refresh that component's datatable)
+            const payload = { myMsg: 'importCompleted' };
+            publish(this.messageContext, ReferralImportCompleted, payload);
+            console.log('after publish');
         })
         .catch(error => {
             if ( error.body.message) {
