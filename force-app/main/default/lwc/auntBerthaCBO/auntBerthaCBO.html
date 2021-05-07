@@ -12,8 +12,11 @@
             </div>
             <c-aunt-bertha-referral-manager-auth if:true={showSettings} onclosesettings={closeSettings}>
             </c-aunt-bertha-referral-manager-auth>
-            <lightning-datatable key-field="id" data={data} columns={columns} onrowaction={handleRowAction}>
+            <lightning-datatable key-field="id" data={data} columns={columns} hide-checkbox-column="true" onrowaction={handleRowAction}>
             </lightning-datatable>
+            <template if:true={noReferralsInDb}>
+                No records found
+            </template>
         </div>
         <template if:true={showNewModal}>
             <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"

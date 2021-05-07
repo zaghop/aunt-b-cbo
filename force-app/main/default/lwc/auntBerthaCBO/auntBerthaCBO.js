@@ -8,25 +8,35 @@ import REFERRALID_FIELD from '@salesforce/schema/Referral__c.Referral_ID__c';
 import STATUS_FIELD from '@salesforce/schema/Referral__c.Status__c';
 import FOLLOWUP_FIELD from '@salesforce/schema/Referral__c.Needs_Follow_Up__c';
 import PROGRAM_FIELD from '@salesforce/schema/Referral__c.Program__c';
-const actions = [
-    { label: 'Show details', name: 'show_details' },
-    { label: 'Delete', name: 'delete' },
-];
+
+// Import message service features required for subscribing and the message channel
+import {
+    subscribe,
+    unsubscribe,
+    APPLICATION_SCOPE,
+    MessageContext
+} from 'lightning/messageService';
+import ReferralImportIsComplete from '@salesforce/messageChannel/Referral_Import_Completed__c';
+
 
 const columns = [
-    /*{
-        type: 'button',
-        typeAttributes: {label: 'View', variant: 'base', onclick: ''}
-    },*/
+    {
+        label: 'View',
+        type: 'button-icon',
+        initialWidth: 25,
+        size: 'x-small',
+        typeAttributes: {
+            iconName: 'action:preview',
+            title: 'Details',
+            variant: 'bare',
+            alternativeText: 'Details'
+        }
+      },
     { label: 'Name', fieldName: 'Name', type: 'text' },
     { label: 'Referral Id', fieldName: 'Referral_ID__c', type: 'text' },
     { label: 'Status', fieldName: 'Status__c', type: 'text' },
     { label: 'Program', fieldName: 'Program__c', type: 'text' },
-    { label: 'Follow Up?', fieldName: 'Needs_Follow_Up__c', type: 'boolean' },
-    {
-        type: 'action',
-        typeAttributes: { rowActions: actions },
-    }
+    { label: 'Follow Up?', fieldName: 'Needs_Follow_Up__c', type: 'boolean' }
 ];
 export default class AuntBerthaCBO extends LightningElement {
     data = [];
@@ -43,41 +53,84 @@ export default class AuntBerthaCBO extends LightningElement {
         return this.theSpinner;
     }
 
+///////////////   Begin. Lightningn Messaging Service implementation     ///////////////////////////
+// Used for inter-component communication with auntBerthaReferralManagerAuth
+
+    @wire(MessageContext)
+    messageContext;
+
+    // Encapsulate logic for Lightning message service subscribe and unsubsubscribe
+    subscribeToMessageChannel() {
+        if (!this.subscription) {
+            this.subscription = subscribe(
+                this.messageContext,
+                ReferralImportIsComplete,
+                (message) => this.handleMessage(message),
+                { scope: APPLICATION_SCOPE }
+            );
+        }
+    }
+
+    unsubscribeToMessageChannel() {
+        unsubscribe(this.subscription);
+        this.subscription = null;
+    }
+
+    // Handler for LMS message received by component
+    handleMessage(message) {
+        console.log(`inside handleMessage for importCompleted LMS message [${JSON.stringify(message)}]`)
+        if(message.myMsg.toUpperCase() === 'IMPORTCOMPLETED'){
+            getAllReferrals()
+			.then(result => {
+                this.data = result;
+                if(! this.data.length > 0){
+                    this.noReferralsInDb = true;
+                }
+                console.log(`importCompleted. data length[${this.data.length}]`);
+			})
+			.catch(error => {
+                console.log('catching it here');
+                this.error = error;
+                console.log(this.error);
+			});
+        }
+    }
+
+    disconnectedCallback() {
+        this.unsubscribeToMessageChannel();
+    }
+///////////////   End. Lightningn Messaging Service implementation     ///////////////////////////
+
+
     connectedCallback() {
+        this.subscribeToMessageChannel();
 		this.loadReferrals();
 	}
 	loadReferrals() {
         this.theSpinner = true;
+
         getAllRefsFromAB();
 		getAllReferrals()
 			.then(result => {
                 this.data = result;
-                console.log(`local all data after getAllRefsFromAB() [${this.data}]`);
+                if(! this.data.length > 0){
+                    this.noReferralsInDb = true;
+                }
+                console.log(`local all data after getAllRefsFromAB() length[${this.data.length}]`);
                 this.theSpinner = false;
 			})
 			.catch(error => {
                 this.error = error;
                 console.log(this.error);
 			});
-    }
+}
     
     handleRowAction(event) {
-        const action = event.detail.action;
         const row = event.detail.row;
-        switch (action.name) {
-            case 'show_details':
-                this.recordId = row.Id;
-                this.showRecordModal = true;
-                console.log('this.showRecordModal = ', this.showRecordModal);
-                break;
-            case 'delete':
-                /*const rows = this.data;
-                const rowIndex = rows.indexOf(row);
-                rows.splice(rowIndex, 1);
-                this.data = rows;*/
-                console.log('delete');
-                break;
-        }
+        console.log(`in handleRowAction`);
+        this.recordId = row.Id;
+        this.showRecordModal = true;
+        console.log('this.showRecordModal = ', this.showRecordModal);
     }
 
     openNewModal = () => {
