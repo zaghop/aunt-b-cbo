@@ -2,9 +2,10 @@
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>50.0</apiVersion>
     <isExposed>true</isExposed>
+    <masterLabel>Aunt Bertha Referral Manager Main Component</masterLabel>
+    <description>An LWC component to manage and view referrals. Component provided by Aunt Bertha</description>
    <targets>
        <target>lightning__AppPage</target>
-       <target>lightning__RecordPage</target>
        <target>lightning__HomePage</target>
    </targets>
 </LightningComponentBundle>

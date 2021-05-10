@@ -4,15 +4,17 @@
     </template>
     <lightning-card>
         <div class="slds-card__body slds-card__body_inner">
-            <div class="slds-grid slds-grid_reverse">
+            <template if:true={canConfig}>
+                <div class="slds-grid slds-grid_reverse">
                 <div class="slds-col slds-size_1-of-12" style="text-align: right;">
                     <lightning-icon icon-name="utility:setup" alternative-text="Close Modal" title="Close" style="color:#FFF"
                     onclick={openSettings}></lightning-icon>
                 </div>
             </div>
-            <c-aunt-bertha-referral-manager-auth if:true={showSettings} onclosesettings={closeSettings}>
-            </c-aunt-bertha-referral-manager-auth>
-            <lightning-datatable key-field="id" data={data} columns={columns} hide-checkbox-column="true" onrowaction={handleRowAction}>
+                <c-aunt-bertha-referral-manager-auth if:true={showSettings} onclosesettings={closeSettings}>
+                </c-aunt-bertha-referral-manager-auth>
+            </template>
+        <lightning-datatable key-field="id" data={data} columns={columns} hide-checkbox-column="true" onrowaction={handleRowAction}>
             </lightning-datatable>
             <template if:true={noReferralsInDb}>
                 No records found

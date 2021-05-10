@@ -1,5 +1,6 @@
 import { LightningElement , wire , track , api} from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent'
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import getSettings from "@salesforce/apex/AuntBerthaReferralManager.getSettings";
 import getAllReferrals from '@salesforce/apex/auntBerthaCBO.getAllReferrals';
 import sendStatusToEndpoint from '@salesforce/apex/auntBerthaCBO.sendStatusToEndpoint';
 import processNewReferralRecord from '@salesforce/apex/auntBerthaCBO.processNewReferralRecord';
@@ -47,6 +48,7 @@ export default class AuntBerthaCBO extends LightningElement {
     fields = [REFERRALID_FIELD, STATUS_FIELD, FOLLOWUP_FIELD, PROGRAM_FIELD];
 
     @api showSettings;
+    @api canConfig;
     @api theSpinner;
     
     get showSpinner(){
@@ -104,9 +106,18 @@ export default class AuntBerthaCBO extends LightningElement {
 
     connectedCallback() {
         this.subscribeToMessageChannel();
+        getSettings().then(result => {
+            if(result.profile == 'admin'){
+                this.canConfig = true;
+            }
+            else{
+                this.canConfig = false;
+            }
+        });
 		this.loadReferrals();
-	}
-	loadReferrals() {
+    }
+
+    loadReferrals() {
         this.theSpinner = true;
 
         getAllRefsFromAB();
