@@ -1,19 +1,8 @@
 public with sharing class AuntBerthaReferralManager {
-        public AuntBerthaReferralManager() {}
 
-        /*@AuraEnabled(cacheable=true)
-        public static Account getAccount(String contactId){
-            Account account = new Account();
-            if(Schema.sObjectType.Account.fields.Name.isAccessible() &&
-                Schema.sObjectType.Account.fields.Id.isAccessible() &&
-                Schema.sObjectType.Contact.fields.Email.isAccessible() &&
-                Schema.sObjectType.Account.fields.Phone.isAccessible() &&
-                Schema.sObjectType.Account.fields.BillingPostalCode.isAccessible()){
-                    account = [SELECT Id, Name, Phone, BillingPostalCode, (Select Email from Contacts LIMIT 1) FROM Account WHERE Id =: contactId LIMIT 1];
-            }
-            return account;
-        }*/
-    
+        public final static String ABEndpointURL = 'https://api.auntberthaqa.com';     // have to change this when deploying to prod
+
+        public AuntBerthaReferralManager() {}
 
         @AuraEnabled
         public static Map<String, String> getSettings(){
@@ -21,12 +10,46 @@ public with sharing class AuntBerthaReferralManager {
 
             Map<String, ab_ref_mgr__c> customSettings = ab_ref_mgr__c.getall();
 
-            config.put('api_key', customSettings.get('api_key').Value__c);
-            config.put('endpoint', customSettings.get('endpoint').Value__c);
-            config.put('username', customSettings.get('username').Value__c);
-            config.put('password', customSettings.get('password').Value__c);
-            config.put('get_closed', customSettings.get('get_closed').Value__c);
-            config.put('update_interval', customSettings.get('update_interval').Value__c);
+            if(customSettings.size() > 0)
+            {
+                if(customSettings.get('api_key') != null){
+                    config.put('api_key', customSettings.get('api_key').Value__c);
+                    config.put('endpoint', customSettings.get('endpoint').Value__c);
+                    config.put('username', customSettings.get('username').Value__c);
+                    config.put('password', customSettings.get('password').Value__c);
+                    config.put('importing_referral_records', customSettings.get('importing_referral_records').Value__c);
+                }
+                else {
+                    // we are not likely to encounter this situation
+                    system.debug('Custom settings has some values, but api_key was undefined. Why is this unlikely scenario happening?');
+                    config.put('api_key', 'undefined');
+                    config.put('endpoint', ABEndpointURL);
+                    config.put('username', 'undefined');
+                    config.put('password', 'undefined');
+                    config.put('importing_referral_records', '');
+                }
+
+                // these could still be undefined, even when api_key and usernames have already been entered.
+                if(customSettings.get('update_interval') != null){
+                    config.put('update_interval', customSettings.get('update_interval').Value__c);
+                    config.put('get_closed', customSettings.get('get_closed').Value__c);
+                }
+                else{
+                    config.put('update_interval', '1');
+                    config.put('get_closed', 'false');
+                }
+            }
+            else {
+                system.debug('First time, settings are undefined. size [' + customSettings.size() + ']');
+                config.put('api_key', 'undefined');
+                config.put('endpoint', ABEndpointURL);
+                config.put('username', 'undefined');
+                config.put('password', 'undefined');
+                config.put('update_interval', '1');
+                config.put('get_closed', 'false');
+                config.put('importing_referral_records', '');
+            }
+
             Id id1 = UserInfo.getProfileId();
 
             List<Profile> profile = [Select Name from Profile where Id =: id1 LIMIT 1];
@@ -46,9 +69,15 @@ public with sharing class AuntBerthaReferralManager {
             Map<String, String> config = new Map<String, String>();
             ab_ref_mgr__c obj = ab_ref_mgr__c.getvalues('importing_referral_records');
 
-            config.put('importing_referral_records', obj.value__c);
+            if(obj != null && obj.value__c != null)
+            {
+                config.put('importing_referral_records', obj.value__c);
 
-            system.debug('got new config [' + obj.value__c + ']');
+                system.debug('got new config [' + obj.value__c + ']');
+            }
+            else {
+                config.put('importing_referral_records', '');
+            }
 
             return config;  
         }
@@ -65,8 +94,9 @@ public with sharing class AuntBerthaReferralManager {
             if(customSettings.size() == 0 || Test.isRunningTest()){
                 lstSettings.add(new ab_ref_mgr__c (Name='username'));
                 lstSettings.add(new ab_ref_mgr__c (Name='password'));
-                lstSettings.add(new ab_ref_mgr__c (Name='endpoint'));
                 lstSettings.add(new ab_ref_mgr__c (Name='api_key'));
+                lstSettings.add(new ab_ref_mgr__c (Name='endpoint', Value__c = ABEndpointURL));
+                lstSettings.add(new ab_ref_mgr__c (Name='importing_referral_records'));     // timestamp or null
                 insert lstSettings;
                 customSettings = ab_ref_mgr__c.getAll();
             }
@@ -83,10 +113,11 @@ public with sharing class AuntBerthaReferralManager {
 
             Map<String, String> config = new Map<String, String>();
             Map<String, ab_ref_mgr__c> newSettings = ab_ref_mgr__c.getall();
-            config.put('api_key', newSettings.get('api_key').Value__c);
-            config.put('endpoint', newSettings.get('endpoint').Value__c);
             config.put('username', newSettings.get('username').Value__c);
             config.put('password', newSettings.get('password').Value__c);
+            config.put('api_key', newSettings.get('api_key').Value__c);
+            config.put('endpoint', newSettings.get('endpoint').Value__c);
+            config.put('importing_referral_records', newSettings.get('importing_referral_records').Value__c);
             return config;  
         }
 
@@ -99,8 +130,8 @@ public with sharing class AuntBerthaReferralManager {
 
             List<ab_ref_mgr__c> lstSettings = new List<ab_ref_mgr__c>();
 
-            if(customSettings.size() == 0 || Test.isRunningTest()){
-                lstSettings.add(new ab_ref_mgr__c (Name='get_closed'));
+            if(customSettings.get('get_closed') == null || Test.isRunningTest()){
+                lstSettings.add(new ab_ref_mgr__c (Name='get_closed', value__c = 'false'));
                 lstSettings.add(new ab_ref_mgr__c (Name='update_interval'));
                 insert lstSettings;
                 customSettings = ab_ref_mgr__c.getAll();
@@ -114,6 +145,7 @@ public with sharing class AuntBerthaReferralManager {
                     Id = settingId,
                     Value__c = settingValue
                 );
+                system.debug('update. ' + customSettings.get(name) + ': [' + settingValue + ']');
             }
 
             Map<String, String> config = new Map<String, String>();

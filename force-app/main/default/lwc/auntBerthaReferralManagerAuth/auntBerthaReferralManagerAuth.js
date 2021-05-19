@@ -33,12 +33,15 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
         console.log('here');
         getSettings().then(result => {
             this.intervalValue = result.update_interval;
+            this.settings['interval'] = this.intervalValue;
 
-            if( result.get_closed.toUpperCase() === 'FALSE'){
+            if( !result.get_closed || result.get_closed.toUpperCase() === 'FALSE'){
                 this.importClosed = null;
+                this.settings['import_closed'] = 'false';
             }
             else{
                 this.importClosed = result.get_closed;
+                this.settings['import_closed'] = this.importClosed;
             }
 
             console.log(`settings. intervalValue[${this.intervalValue}], importClosed[${result.get_closed}][${this.importClosed}]`);
@@ -309,7 +312,7 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
                 getSettings().then(result => {
                     this.intervalValue = result.update_interval;
         
-                    if( result.get_closed.toUpperCase() === 'FALSE'){
+                    if( ! result.get_closed || result.get_closed.toUpperCase() === 'FALSE'){
                         this.importClosed = null;
                     }
                     else{

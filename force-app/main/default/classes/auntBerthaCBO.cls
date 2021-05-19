@@ -165,63 +165,66 @@ public with sharing class auntBerthaCBO {
         Map<String, String> config = new Map<String, String>();
 
         Map<String, ab_ref_mgr__c	> customSettings = ab_ref_mgr__c.getall();
-        config.put('api_key', customSettings.get('api_key').Value__c);
-        config.put('endpoint', customSettings.get('endpoint').Value__c);
-        config.put('username', customSettings.get('username').Value__c);
-        config.put('password', customSettings.get('password').Value__c);
 
-        //System.debug('config [' + config.values() + ']');
+        if(customSettings.get('api_key') != null){
+            config.put('api_key', customSettings.get('api_key').Value__c);
+            config.put('endpoint', customSettings.get('endpoint').Value__c);
+            config.put('username', customSettings.get('username').Value__c);
+            config.put('password', customSettings.get('password').Value__c);
 
-        String ABEndpoint = customSettings.get('endpoint').Value__c;
-        String tokenEndpoint = customSettings.get('endpoint').Value__c+'/v3/authenticate';
-        String responseJSN;
+            //System.debug('config [' + config.values() + ']');
 
-        Map<String, String> tokenData = new Map<String, String>();
+            String ABEndpoint = customSettings.get('endpoint').Value__c;
+            String tokenEndpoint = customSettings.get('endpoint').Value__c+'/v3/authenticate';
+            String responseJSN;
 
-        tokenData.put('username', customSettings.get('username').Value__c);
-        tokenData.put('password', customSettings.get('password').Value__c);
-        tokenData.put('api_key', customSettings.get('api_key').Value__c);
+            Map<String, String> tokenData = new Map<String, String>();
 
-        //System.debug('tokenData [' + tokenData.values() + ']');
+            tokenData.put('username', customSettings.get('username').Value__c);
+            tokenData.put('password', customSettings.get('password').Value__c);
+            tokenData.put('api_key', customSettings.get('api_key').Value__c);
 
-        String jsonBody = JSON.serialize(tokenData);
+            //System.debug('tokenData [' + tokenData.values() + ']');
 
-        //System.debug('preparing for authenticate call. endpoint is: ' + tokenEndpoint);
-        //System.debug('preparing for authenticate call. jsonBody is: ' + jsonBody);
+            String jsonBody = JSON.serialize(tokenData);
 
-        HttpRequest req = new HttpRequest();
-        req.setMethod('POST');
-        req.setTimeout(60000);
-        req.setHeader('content-type', 'application/json;charset=UTF-8');
-        req.setHeader('Content-Length', String.valueOf(jsonBody.length()));
-        req.setEndpoint(tokenEndpoint);
-        req.setBody(jsonBody);
+            //System.debug('preparing for authenticate call. endpoint is: ' + tokenEndpoint);
+            //System.debug('preparing for authenticate call. jsonBody is: ' + jsonBody);
 
-        if(!Test.isRunningTest()){
-            Http http = new Http();
-            HTTPResponse res = http.send(req);
-            responseJSN = res.getBody();
+            HttpRequest req = new HttpRequest();
+            req.setMethod('POST');
+            req.setTimeout(60000);
+            req.setHeader('content-type', 'application/json;charset=UTF-8');
+            req.setHeader('Content-Length', String.valueOf(jsonBody.length()));
+            req.setEndpoint(tokenEndpoint);
+            req.setBody(jsonBody);
 
-            System.debug('response return from authentication call: '+responseJSN);
-            JSONParser parser = JSON.createParser(responseJSN);
-            while (parser.nextToken() != null) {
-                if(parser.getText() == 'token'){
-                    parser.nextToken();
-                    Map<String, String> retMap = new Map<String, String>();
-                    retMap.put('token', parser.getText());
-                    retMap.put('endpoint', ABEndpoint);     
+            if(!Test.isRunningTest()){
+                Http http = new Http();
+                HTTPResponse res = http.send(req);
+                responseJSN = res.getBody();
 
-                    //System.debug('in parsing. token is ' + retMap.get('token'));
-                    //System.debug('in parsing. endpoint is ' + retMap.get('endpoint'));
-                    return retMap;
+                System.debug('response return from authentication call: '+responseJSN);
+                JSONParser parser = JSON.createParser(responseJSN);
+                while (parser.nextToken() != null) {
+                    if(parser.getText() == 'token'){
+                        parser.nextToken();
+                        Map<String, String> retMap = new Map<String, String>();
+                        retMap.put('token', parser.getText());
+                        retMap.put('endpoint', ABEndpoint);     
+
+                        //System.debug('in parsing. token is ' + retMap.get('token'));
+                        //System.debug('in parsing. endpoint is ' + retMap.get('endpoint'));
+                        return retMap;
+                    }
                 }
+            }else{
+                Map<String, String> retMap = new Map<String, String>();
+                retMap.put('token', '234234asdfasfasfasfasfasfasf');
+                retMap.put('endpoint', ABEndpoint);
+                System.debug('test response token['+retMap.get('token')+'] endpoint['+retMap.get('endpoint')+']');
+                return retMap;
             }
-        }else{
-            Map<String, String> retMap = new Map<String, String>();
-            retMap.put('token', '234234asdfasfasfasfasfasfasf');
-            retMap.put('endpoint', ABEndpoint);
-            System.debug('test response token['+retMap.get('token')+'] endpoint['+retMap.get('endpoint')+']');
-            return retMap;
         }
         return null;
     }
