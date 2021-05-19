@@ -120,8 +120,14 @@ export default class AuntBerthaCBO extends LightningElement {
     loadReferrals() {
         this.theSpinner = true;
 
-        getAllRefsFromAB();
-		getAllReferrals()
+        getAllRefsFromAB()
+            .catch(error => {
+                this.theSpinner = false;
+                this.error = error;
+                console.log(this.error);
+            });
+
+        getAllReferrals()
 			.then(result => {
                 this.data = result;
                 if(! this.data.length > 0){
@@ -131,6 +137,7 @@ export default class AuntBerthaCBO extends LightningElement {
                 this.theSpinner = false;
 			})
 			.catch(error => {
+                this.theSpinner = false;
                 this.error = error;
                 console.log(this.error);
 			});
