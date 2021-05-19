@@ -198,11 +198,15 @@ export default class AuntBerthaReferralManagerAuth extends LightningElement {
             console.log('after publish');
         })
         .catch(error => {
+            this.currentlyImportingRefs = false;
+            updateImportingSetting({ type: 'stop' });
+
             if ( error.body.message) {
                 const evt_e = new ShowToastEvent({
                     title: "Error",
                     message: error.body.message,
-                    variant: "error"
+                    variant: "error",
+                    mode: 'sticky'
                 });
                 this.dispatchEvent(evt_e);
             }

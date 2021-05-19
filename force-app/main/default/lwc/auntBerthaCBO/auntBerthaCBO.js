@@ -124,6 +124,14 @@ export default class AuntBerthaCBO extends LightningElement {
             .catch(error => {
                 this.theSpinner = false;
                 this.error = error;
+                const evt = new ShowToastEvent({
+                    title: "Error",
+                    message: error.body.message,
+                    variant: "error",
+                    mode: "sticky"
+                });
+                this.dispatchEvent(evt);
+
                 console.log(this.error);
             });
 
