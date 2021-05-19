@@ -85,8 +85,8 @@ export default class AuntBerthaCBO extends LightningElement {
             getAllReferrals()
 			.then(result => {
                 this.data = result;
-                if(! this.data.length > 0){
-                    this.noReferralsInDb = true;
+                if(this.data.length > 0){
+                    this.noReferralsInDb = false;
                 }
                 console.log(`importCompleted. data length[${this.data.length}]`);
 			})
