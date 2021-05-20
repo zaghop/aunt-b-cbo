@@ -327,18 +327,31 @@ public with sharing class AuntBerthaReferralManager {
                 if(realRefList.size() > 0){
                     system.debug('upserting ['+realRefList.size()+'] records');
                     
-                    Database.UpsertResult[] results = Database.upsert(realRefList, Referral__c.Referral_ID__c);
-                    for(Integer i = 0; i < results.size(); i++) {
-                        if(results[i].isSuccess()) {
-                            if(results[i].isCreated()) {
-                                newRecordsCount++;
+                    try{
+                        Database.UpsertResult[] results = Database.upsert(realRefList, Referral__c.Referral_ID__c);
+                        for(Integer i = 0; i < results.size(); i++) {
+                            if(results[i].isSuccess()) {
+                                if(results[i].isCreated()) {
+                                    newRecordsCount++;
+                                } else {
+                                    updateRecordsCount++;
+                                }
                             } else {
-                                updateRecordsCount++;
+                                failedRecordsCount++;
                             }
-                        } else {
-                            failedRecordsCount++;
                         }
                     }
+                    catch (Exception e) {
+
+                        if(System.isScheduled()){
+                            system.debug(LoggingLevel.ERROR, 'Exception: ['+e.getMessage()+']');
+                            throw e;
+                        }
+                        else {
+                            throw new AuraHandledException(e.getMessage());
+                        }
+                    }
+
                 }
                 System.debug('New records added ['+ newRecordsCount +']');
                 System.debug('Existing records updated ['+ updateRecordsCount +']');
@@ -502,17 +515,22 @@ public with sharing class AuntBerthaReferralManager {
                 if(realRefList.size() > 0){
                     system.debug('upserting ['+realRefList.size()+'] records');
 
-                    Database.UpsertResult[] results = Database.upsert(realRefList, Referral__c.Referral_ID__c);
-                    for(Integer i = 0; i < results.size(); i++) {
-                        if(results[i].isSuccess()) {
-                            if(results[i].isCreated()) {
-                                newRecordsCount++;
+                    try{
+                        Database.UpsertResult[] results = Database.upsert(realRefList, Referral__c.Referral_ID__c);
+                        for(Integer i = 0; i < results.size(); i++) {
+                            if(results[i].isSuccess()) {
+                                if(results[i].isCreated()) {
+                                    newRecordsCount++;
+                                } else {
+                                    updateRecordsCount++;
+                                }
                             } else {
-                                updateRecordsCount++;
+                                failedRecordsCount++;
                             }
-                        } else {
-                            failedRecordsCount++;
                         }
+                    }
+                    catch (Exception e) {
+                        throw new AuraHandledException(e.getMessage());
                     }
                 }
                 System.debug('New records added ['+ newRecordsCount +']');
