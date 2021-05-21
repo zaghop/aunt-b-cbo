@@ -275,7 +275,8 @@ public with sharing class AuntBerthaReferralManager {
 
                                 Referral__c realRef = new Referral__c();
                                 realRef.Referral_ID__c = (String)ABref.get('id');
-                                realRef.Program__c = (String)ABresp_program.get('id');
+                                realRef.Program_ID__c = (String)ABresp_program.get('id');
+                                realRef.Program_Name__c = (String)ABresp_program.get('name');
                                 //realRef.Sender_Username__c = (String)ABref.get('sender_username');
                                 realRef.Receiver_Email__c = (String)ABresp_receiver.get('email');
                                 realRef.Receiver_First_Name__c = (String)ABresp_receiver.get('first_name');
@@ -462,7 +463,8 @@ public with sharing class AuntBerthaReferralManager {
 
                                 Referral__c realRef = new Referral__c();
                                 realRef.Referral_ID__c = (String)ABref.get('id');
-                                realRef.Program__c = (String)ABresp_program.get('id');
+                                realRef.Program_ID__c = (String)ABresp_program.get('id');
+                                realRef.Program_Name__c = (String)ABresp_program.get('name');
                                 //realRef.Sender_Username__c = (String)ABref.get('sender_username');
                                 realRef.Receiver_Email__c = (String)ABresp_receiver.get('email');
                                 realRef.Receiver_First_Name__c = (String)ABresp_receiver.get('first_name');

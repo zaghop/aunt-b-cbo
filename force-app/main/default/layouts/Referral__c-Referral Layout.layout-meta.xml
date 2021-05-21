@@ -16,10 +16,6 @@
                 <field>Referral_ID__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
-                <field>Program__c</field>
-            </layoutItems>
-            <layoutItems>
                 <behavior>Readonly</behavior>
                 <field>Sender_Username__c</field>
             </layoutItems>
@@ -30,6 +26,14 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Comment__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Program_Name__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Program_ID__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
