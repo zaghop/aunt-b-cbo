@@ -196,16 +196,9 @@ public with sharing class AuntBerthaReferralManager {
 
             if(ABtoken != null){
 
-                String endpoint =  ABtoken.get('endpoint')+'/v3/referrals/:search';
+                String endpoint =  ABtoken.get('endpoint')+'/v3/referrals/';
     
                 String responseJSN;
-
-                HttpRequest req = new HttpRequest();
-                req.setMethod('POST');
-                req.setHeader('Authorization', 'Bearer '+ABtoken.get('token'));
-                req.setHeader('Content-Type', 'application/json');
-                req.setTimeout(60000);
-                req.setEndpoint(endpoint);
 
                 /*Integer xDaysAgo = -17;     // negative for past days
                 String pastMonth = String.valueOf(date.today().addDays(xDaysAgo).month());
@@ -238,15 +231,26 @@ public with sharing class AuntBerthaReferralManager {
                         parmsObj.put('needs_follow_up', false);
                         // add more parameters here if needed
                     }
-                    if(!String.isBlank(str_nextPage)){
-                        parmsObj.put('next_page', str_nextPage);
+                    jsonString = JSON.Serialize(parmsObj);                                        
+
+                    HttpRequest req = new HttpRequest();
+                    req.setHeader('Authorization', 'Bearer '+ABtoken.get('token'));
+                    req.setHeader('Content-Type', 'application/json');
+                    req.setTimeout(60000);
+                    if(String.isBlank(str_nextPage)){
+        
+                        req.setMethod('POST');
+                        req.setEndpoint(endpoint+':search');
+
+                        req.setBody(jsonString);
+                        system.debug('call jsonString ['+jsonString+']');
+                    }
+                    else{
+                        req.setMethod('GET');
+                        req.setEndpoint(endpoint+'?next_page='+str_nextPage);
+                        system.debug('next_page request ['+req+']');
                     }
 
-                    jsonString = JSON.Serialize(parmsObj);
-                                        
-                    req.setBody(jsonString);
-
-                    system.debug('call jsonString ['+jsonString+']');
 
                     if(!Test.isRunningTest()){
                         try{
@@ -261,48 +265,69 @@ public with sharing class AuntBerthaReferralManager {
 
                             Map<String, Object> ABresponseMap = (Map<String, Object>) JSON.deserializeUntyped(responseJSN);
 
-                            Map<String, Object> ABresponseData = (Map<String, Object>) ABresponseMap.get('data');
+                            if((Boolean)ABresponseMap.get('success') == true){
+                                Map<String, Object> ABresponseData = (Map<String, Object>) ABresponseMap.get('data');
 
-                            List<Object> ABrefObjList = (List<Object>)ABresponseData.get('referrals');
-                            system.debug('['+ABrefObjList.size()+'] referrals were received from endpoint');
+                                List<Object> ABrefObjList = (List<Object>)ABresponseData.get('referrals');
+                                system.debug('['+ABrefObjList.size()+'] referrals were received from endpoint');
 
-                            for(Object ABrefObj: ABrefObjList){
-                                Map<String, Object> ABref = (Map<String, Object>)ABrefObj;
-                                system.debug('Id is ['+ABref.get('id')+']');
+                                for(Object ABrefObj: ABrefObjList){
+                                    Map<String, Object> ABref = (Map<String, Object>)ABrefObj;
+                                    system.debug('Id is ['+ABref.get('id')+']');
 
-                                Map<String, Object> ABresp_program = (Map<String, Object>)ABref.get('program');
-                                Map<String, Object> ABresp_receiver = (Map<String, Object>)ABref.get('receiver');
+                                    Map<String, Object> ABresp_program = (Map<String, Object>)ABref.get('program');
+                                    Map<String, Object> ABresp_receiver = (Map<String, Object>)ABref.get('receiver');
 
-                                Referral__c realRef = new Referral__c();
-                                realRef.Referral_ID__c = (String)ABref.get('id');
-                                realRef.Program_ID__c = (String)ABresp_program.get('id');
-                                realRef.Program_Name__c = (String)ABresp_program.get('name');
-                                //realRef.Sender_Username__c = (String)ABref.get('sender_username');
-                                realRef.Receiver_Email__c = (String)ABresp_receiver.get('email');
-                                realRef.Receiver_First_Name__c = (String)ABresp_receiver.get('first_name');
-                                realRef.Receiver_Last_Name__c = (String)ABresp_receiver.get('last_name');
-                                realRef.Receiver_Phone_Number__c = (String)ABresp_receiver.get('phone_number');
-                                realRef.Status__c = (String)ABref.get('status');
-                                realRef.Comment__c = (String)ABref.get('comment');
+                                    Referral__c realRef = new Referral__c();
+                                    realRef.Referral_ID__c = (String)ABref.get('id');
+                                    realRef.Program_ID__c = (String)ABresp_program.get('id');
+                                    realRef.Program_Name__c = (String)ABresp_program.get('name');
+                                    //realRef.Sender_Username__c = (String)ABref.get('sender_username');
+                                    realRef.Receiver_Email__c = (String)ABresp_receiver.get('email');
+                                    realRef.Receiver_First_Name__c = (String)ABresp_receiver.get('first_name');
+                                    realRef.Receiver_Last_Name__c = (String)ABresp_receiver.get('last_name');
+                                    realRef.Receiver_Phone_Number__c = (String)ABresp_receiver.get('phone_number');
+                                    realRef.Status__c = (String)ABref.get('status');
+                                    realRef.Comment__c = (String)ABref.get('comment');
 
-                                List<Object> cp_values = (List<Object>)ABref.get('contact_preferences');
-                                if(cp_values != null){
-                                    realRef.Contact_Preferences__c = String.join(cp_values, ';');
+                                    List<Object> cp_values = (List<Object>)ABref.get('contact_preferences');
+                                    if(cp_values != null){
+                                        realRef.Contact_Preferences__c = String.join(cp_values, ';');
+                                    }
+                                    else{
+                                        realRef.Contact_Preferences__c = '';
+                                    }
+
+                                    realRef.Name = (String)ABresp_receiver.get('first_name') + ' ' + (String)ABresp_receiver.get('last_name');
+                                    realRef.Needs_Follow_Up__c = (Boolean)ABref.get('needs_follow_up');
+                                    realRefList.add(realRef);
+
+                                    system.debug('added referral__c to list ['+realRef+']');
                                 }
-                                else{
-                                    realRef.Contact_Preferences__c = '';
+
+                                str_nextPage = (String) ABresponseData.get('next_page');
+                                if(!String.isBlank(str_nextPage)){
+                                    system.debug('will call for next_page ['+str_nextPage+']');
                                 }
-
-                                realRef.Name = (String)ABresp_receiver.get('first_name') + ' ' + (String)ABresp_receiver.get('last_name');
-                                realRef.Needs_Follow_Up__c = (Boolean)ABref.get('needs_follow_up');
-                                realRefList.add(realRef);
-
-                                system.debug('added referral__c to list ['+realRef+']');
                             }
+                            else {
+                                String m = (String)ABresponseMap.get('error');
+                                system.debug('Endpoint response was unexpected: ' + m);
 
-                            str_nextPage = (String) ABresponseData.get('next_page');
-                            if(!String.isBlank(str_nextPage)){
-                                system.debug('will call for next_page ['+str_nextPage+']');
+                                if(System.isScheduled()){
+                                    system.debug('throw new CalloutException for scheduled job');
+                                    
+                                    CalloutException e = new CalloutException(m);
+                                    e.setMessage(m);
+                                    throw e;
+                                }
+                                else {
+                                    system.debug('throw new aurahandledException for UI');
+
+                                    AuraHandledException e = new AuraHandledException(m);
+                                    e.setMessage(m);
+                                    throw e;
+                                }
                             }
                         }
                         catch (Exception e) {
@@ -321,42 +346,8 @@ public with sharing class AuntBerthaReferralManager {
                 }
                 while(! String.isBlank(str_nextPage));
 
-                Integer newRecordsCount = 0;
-                Integer updateRecordsCount = 0;
-                Integer failedRecordsCount = 0;
-
-                if(realRefList.size() > 0){
-                    system.debug('upserting ['+realRefList.size()+'] records');
-                    
-                    try{
-                        Database.UpsertResult[] results = Database.upsert(realRefList, Referral__c.Referral_ID__c);
-                        for(Integer i = 0; i < results.size(); i++) {
-                            if(results[i].isSuccess()) {
-                                if(results[i].isCreated()) {
-                                    newRecordsCount++;
-                                } else {
-                                    updateRecordsCount++;
-                                }
-                            } else {
-                                failedRecordsCount++;
-                            }
-                        }
-                    }
-                    catch (Exception e) {
-
-                        if(System.isScheduled()){
-                            system.debug(LoggingLevel.ERROR, 'Exception: ['+e.getMessage()+']');
-                            throw e;
-                        }
-                        else {
-                            throw new AuraHandledException(e.getMessage());
-                        }
-                    }
-
-                }
-                System.debug('New records added ['+ newRecordsCount +']');
-                System.debug('Existing records updated ['+ updateRecordsCount +']');
-                System.debug('Failed to process ['+ failedRecordsCount +']');
+                system.debug('call function to upsert and delete');
+                upsertThenDeleteOldRecords(realRefList);
             }
         }
 
@@ -417,20 +408,25 @@ public with sharing class AuntBerthaReferralManager {
                 String responseJSN;
                 String ABnextPage = '';
 
-                Integer pageLimit = 5000;
-                Integer runningOffset = 0;
+                //Integer pageLimit = 50;
+                //Integer runningOffset = 0;
 
                 do{
-                    String endpoint =  ABtoken.get('endpoint')+'/v3/referrals?limit='+pageLimit;
+                    // during QA, it was discovered that limit and offset parameters as described in API document,
+                    // didn't have any significance for API response.
+                    //String endpoint =  ABtoken.get('endpoint')+'/v3/referrals?limit='+pageLimit;
+                    String endpoint =  ABtoken.get('endpoint')+'/v3/referrals';
                     HttpRequest req = new HttpRequest();
                     req.setMethod('GET');
                     req.setHeader('Authorization', 'Bearer '+ABtoken.get('token'));
                     req.setHeader('Content-Type', 'application/json');
-                    req.setTimeout(60000);
-                    req.setEndpoint(endpoint);
+                    req.setTimeout(60000);      // default 10 seconds wasn't enough
 
-                    if(! String.isBlank(ABnextPage)){
-                        endpoint += '&offset='+runningOffset;
+                    if(String.isBlank(ABnextPage)){
+                        req.setEndpoint(endpoint);
+                    }
+                    else{
+                        req.setEndpoint(endpoint + '?next_page='+ABnextPage);
                     }
 
                     system.debug('Full endpoint ['+endpoint+']');
@@ -441,11 +437,11 @@ public with sharing class AuntBerthaReferralManager {
                             Http http = new Http();
                             HttpRequest empty_req = new HttpRequest();
 
+                            system.debug('making callout now');
                             HTTPResponse res = http.send(req);
                             responseJSN = res.getBody();
                             system.debug('response from endpoint ['+responseJSN+']');
 
-                            //if(responseJSN)
                             Map<String, Object> ABresponseMap = (Map<String, Object>) JSON.deserializeUntyped(responseJSN);
 
                             Map<String, Object> ABresponseData = (Map<String, Object>) ABresponseMap.get('data');
@@ -490,7 +486,7 @@ public with sharing class AuntBerthaReferralManager {
 
                             ABnextPage = (String) ABresponseData.get('next_page');
                             if(! String.isBlank(ABnextPage)){
-                                runningOffset += pageLimit;
+                                //runningOffset += pageLimit;
                                 system.debug('will call for next_page ['+ABnextPage+']');
                             }
 
@@ -510,39 +506,53 @@ public with sharing class AuntBerthaReferralManager {
                 }
                 while(! String.isBlank(ABnextPage));
 
-                Integer newRecordsCount = 0;
-                Integer updateRecordsCount = 0;
-                Integer failedRecordsCount = 0;
-
                 if(realRefList.size() > 0){
-                    system.debug('upserting ['+realRefList.size()+'] records');
+                    system.debug('call function to upsert and delete');
+                    upsertThenDeleteOldRecords(realRefList);
+                }
+            }
+            System.debug('End of function');
+        }
 
-                    try{
-                        Database.UpsertResult[] results = Database.upsert(realRefList, Referral__c.Referral_ID__c);
-                        for(Integer i = 0; i < results.size(); i++) {
-                            if(results[i].isSuccess()) {
-                                if(results[i].isCreated()) {
-                                    newRecordsCount++;
-                                } else {
-                                    updateRecordsCount++;
-                                }
-                            } else {
-                                failedRecordsCount++;
-                            }
+        public static void upsertThenDeleteOldRecords(List<Referral__c> newRefList){
+            system.debug('upserting ['+newRefList.size()+'] records');
+
+            Integer newRecordsCount = 0;
+            Integer updateRecordsCount = 0;
+            Integer failedRecordsCount = 0;
+
+            try{
+                Database.UpsertResult[] results = Database.upsert(newRefList, Referral__c.Referral_ID__c);
+                for(Integer i = 0; i < results.size(); i++) {
+                    if(results[i].isSuccess()) {
+                        if(results[i].isCreated()) {
+                            newRecordsCount++;
+                        } else {
+                            updateRecordsCount++;
                         }
-                    }
-                    catch (Exception e) {
-                        throw new AuraHandledException(e.getMessage());
+                    } else {
+                        failedRecordsCount++;
                     }
                 }
                 System.debug('New records added ['+ newRecordsCount +']');
                 System.debug('Existing records updated ['+ updateRecordsCount +']');
                 System.debug('Failed to process ['+ failedRecordsCount +']');
 
+                // delete local copies of records that aren't in AB anymore
+                delete [ SELECT Id FROM Referral__c WHERE Id not in :newReflist ];
             }
-            System.debug('End of function');
+            catch (Exception e) {
+                if(System.isScheduled()){
+                    system.debug(LoggingLevel.ERROR, 'Exception: ['+e.getMessage()+']');
+                    throw e;
+                }
+                else {
+                    throw new AuraHandledException(e.getMessage());
+                }
+            }
         }
-        
+
+
         @AuraEnabled
         public static void postToChatter(){
             try {
