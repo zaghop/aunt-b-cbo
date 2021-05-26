@@ -8,7 +8,7 @@ import getAllRefsFromAB from '@salesforce/apex/AuntBerthaReferralManager.getAllR
 import REFERRALID_FIELD from '@salesforce/schema/Referral__c.Referral_ID__c';
 import STATUS_FIELD from '@salesforce/schema/Referral__c.Status__c';
 import FOLLOWUP_FIELD from '@salesforce/schema/Referral__c.Needs_Follow_Up__c';
-import PROGRAM_FIELD from '@salesforce/schema/Referral__c.Program__c';
+import PROGRAM_NAME_FIELD from '@salesforce/schema/Referral__c.Program_Name__c';
 
 // Import message service features required for subscribing and the message channel
 import {
@@ -36,7 +36,7 @@ const columns = [
     { label: 'Name', fieldName: 'Name', type: 'text' },
     { label: 'Referral Id', fieldName: 'Referral_ID__c', type: 'text' },
     { label: 'Status', fieldName: 'Status__c', type: 'text' },
-    { label: 'Program', fieldName: 'Program__c', type: 'text' },
+    { label: 'Program', fieldName: 'Program_Name__c', type: 'text' },
     { label: 'Follow Up?', fieldName: 'Needs_Follow_Up__c', type: 'boolean' }
 ];
 export default class AuntBerthaCBO extends LightningElement {
@@ -45,7 +45,7 @@ export default class AuntBerthaCBO extends LightningElement {
     showNewModal = false;
     showRecordModal = false;
     recordId = '';
-    fields = [REFERRALID_FIELD, STATUS_FIELD, FOLLOWUP_FIELD, PROGRAM_FIELD];
+    fields = [REFERRALID_FIELD, STATUS_FIELD, FOLLOWUP_FIELD, PROGRAM_NAME_FIELD];
 
     @api showSettings;
     @api canConfig;

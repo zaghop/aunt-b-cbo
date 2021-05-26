@@ -21,7 +21,8 @@
         <members>Referral__c.Comment__c</members>
         <members>Referral__c.Contact_Preferences__c</members>
         <members>Referral__c.Needs_Follow_Up__c</members>
-        <members>Referral__c.Program__c</members>
+        <members>Referral__c.Program_ID__c</members>
+        <members>Referral__c.Program_Name__c</members>
         <members>Referral__c.Receiver_Email__c</members>
         <members>Referral__c.Receiver_First_Name__c</members>
         <members>Referral__c.Receiver_Last_Name__c</members>

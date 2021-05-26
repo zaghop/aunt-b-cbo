@@ -5,7 +5,7 @@ public with sharing class auntBerthaCBO {
 
     @AuraEnabled
     public static List<Referral__c> getAllReferrals(){
-        List<Referral__c> lR = [SELECT Id, Referral_ID__c, Program__c, Status__c, Name, Needs_Follow_Up__c FROM Referral__c];
+        List<Referral__c> lR = [SELECT Id, Referral_ID__c, Program_Name__c, Program_ID__c, Status__c, Name, Needs_Follow_Up__c FROM Referral__c];
         return lR;
     }
     
@@ -15,7 +15,7 @@ public with sharing class auntBerthaCBO {
         System.debug('from main record: rId [' + rId + ']');
 
         return [
-            SELECT Id, Referral_ID__c, Program__c, Name, Sender_Username__c, Receiver_First_Name__c, Receiver_Last_Name__c, Receiver_Email__c,
+            SELECT Id, Referral_ID__c, Program_Name__c, Program_ID__c, Name, Sender_Username__c, Receiver_First_Name__c, Receiver_Last_Name__c, Receiver_Email__c,
             		Receiver_Phone_Number__c, Status__c, Comment__c, Contact_Preferences__c, Needs_Follow_Up__c
             FROM Referral__c where Id = :rId
         ];
