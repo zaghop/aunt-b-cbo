@@ -4,11 +4,29 @@ public with sharing class auntBerthaCBO {
     }
 
     @AuraEnabled
+    public static Integer getReferralsCount(){
+        return database.countQuery('SELECT count() FROM Referral__c');
+    }
+
+    @AuraEnabled
     public static List<Referral__c> getAllReferrals(){
-        List<Referral__c> lR = [SELECT Id, Referral_ID__c, Program_Name__c, Program_ID__c, Status__c, Name, Needs_Follow_Up__c FROM Referral__c];
+        List<Referral__c> lR = [SELECT Id, Referral_ID__c, Program_Name__c, Program_ID__c, Status__c, Name, Needs_Follow_Up__c 
+                                    FROM Referral__c
+                                    order by Name];
         return lR;
     }
     
+    @AuraEnabled
+    public static List<Referral__c> getSomeReferrals(Integer limitSize, Integer offset){
+        List<Referral__c> lR = [SELECT Id, Referral_ID__c, Program_Name__c, Program_ID__c, Status__c, Name, Needs_Follow_Up__c
+                                        FROM Referral__c
+                                        order by Name
+                                        LIMIT :limitSize
+                                        OFFSET :offset];
+
+        return lR;
+    }
+
     @AuraEnabled
     public static Referral__c getSingleReferral(Id rId) {
  
