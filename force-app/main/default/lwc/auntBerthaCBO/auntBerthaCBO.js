@@ -1,9 +1,9 @@
 import { LightningElement , wire , track , api} from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getSettings from "@salesforce/apex/AuntBerthaReferralManager.getSettings";
-import getAllReferrals from '@salesforce/apex/auntBerthaCBO.getAllReferrals';
+import getSomeReferrals from '@salesforce/apex/auntBerthaCBO.getSomeReferrals';
 import sendStatusToEndpoint from '@salesforce/apex/auntBerthaCBO.sendStatusToEndpoint';
-import processNewReferralRecord from '@salesforce/apex/auntBerthaCBO.processNewReferralRecord';
+import getReferralsCount from '@salesforce/apex/auntBerthaCBO.getReferralsCount';
 import getAllRefsFromAB from '@salesforce/apex/AuntBerthaReferralManager.getAllRefsFromAB';
 import REFERRALID_FIELD from '@salesforce/schema/Referral__c.Referral_ID__c';
 import STATUS_FIELD from '@salesforce/schema/Referral__c.Status__c';
@@ -42,6 +42,9 @@ const columns = [
 export default class AuntBerthaCBO extends LightningElement {
     data = [];
     columns = columns;
+    rowLimit =20;
+    rowOffSet=0;
+
     showNewModal = false;
     showRecordModal = false;
     recordId = '';
@@ -82,7 +85,9 @@ export default class AuntBerthaCBO extends LightningElement {
     handleMessage(message) {
         console.log(`inside handleMessage for importCompleted LMS message [${JSON.stringify(message)}]`)
         if(message.myMsg.toUpperCase() === 'IMPORTCOMPLETED'){
-            getAllReferrals()
+            this.rowOffSet = 0;
+            getReferralsCount().then(result => {this.recordCount = result;});     //total record count in db
+            getSomeReferrals({ limitSize: this.rowLimit , offset : this.rowOffSet })
 			.then(result => {
                 this.data = result;
                 if(this.data.length > 0){
@@ -114,34 +119,41 @@ export default class AuntBerthaCBO extends LightningElement {
                 this.canConfig = false;
             }
         });
-		this.loadReferrals();
-    }
 
-    loadReferrals() {
         this.theSpinner = true;
 
         getAllRefsFromAB()
-            .catch(error => {
-                this.theSpinner = false;
-                this.error = error;
-                const evt = new ShowToastEvent({
-                    title: "Error",
-                    message: error.body.message,
-                    variant: "error",
-                    mode: "sticky"
-                });
-                this.dispatchEvent(evt);
-
-                console.log(this.error);
+        .catch(error => {
+            this.theSpinner = false;
+            this.error = error;
+            const evt = new ShowToastEvent({
+                title: "Error",
+                message: error.body.message,
+                variant: "error",
+                mode: "sticky"
             });
+            this.dispatchEvent(evt);
 
-        getAllReferrals()
+            console.log(this.error);
+        });
+
+        console.log('back from getAllRefsFromAB()');
+
+        getReferralsCount().then(result => {this.recordCount = result;});     //total record count in db
+        this.loadReferrals();
+    }
+
+    loadReferrals() {
+        console.log('inside loadReferrals');
+        return getSomeReferrals({ limitSize: this.rowLimit , offset : this.rowOffSet })
 			.then(result => {
-                this.data = result;
+                console.log('now show the datatable');
+
+                this.data = this.data.concat(result);
                 if(! this.data.length > 0){
                     this.noReferralsInDb = true;
                 }
-                console.log(`local all data after getAllRefsFromAB() length[${this.data.length}]`);
+                console.log(`local some data after getAllRefsFromAB() length[${this.data.length}]`);
                 this.theSpinner = false;
 			})
 			.catch(error => {
@@ -149,7 +161,27 @@ export default class AuntBerthaCBO extends LightningElement {
                 this.error = error;
                 console.log(this.error);
 			});
-}
+        }
+
+
+    // with lazy load, user scrolled further down to see more data
+    loadMoreData(event) {
+        if(event.target && this.rowOffSet < this.recordCount)
+        {
+            console.log(`loadMoreData. Have ${this.rowOffSet} recs. loading ${this.rowLimit} more rows`);
+
+            event.target.isLoading = true;
+
+            this.rowOffSet = this.rowOffSet + this.rowLimit;
+            this.loadReferrals();
+            event.target.isLoading = false;
+
+            console.log('loaded...')
+        }
+        else{
+            console.log(`not loading more. target[${event.target}], offset[${this.rowOffSet}], recordCount[${this.recordCount}]`);
+        }
+    }
     
     handleRowAction(event) {
         const row = event.detail.row;
@@ -292,10 +324,11 @@ export default class AuntBerthaCBO extends LightningElement {
         console.log(`precision status change in datatable [${JSON.stringify(this.data)}]`);
         */
 
-        getAllReferrals()
+        this.rowOffSet = 0;
+        getSomeReferrals({ limitSize: this.rowLimit , offset : this.rowOffSet })
         .then(result => {
             this.data = result;
-            console.log(`back from getAllReferrals. result[${JSON.stringify(result)}]`);
+            console.log(`back from getSomeReferrals(${this.rowLimit},${this.rowOffSet}). result[${JSON.stringify(result)}]`);
             console.log(`refresh datatable after status update`);
         })
         .catch(error => {
